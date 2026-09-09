@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Clientes/">
+    <Project Path="src/Clientes/Clientes.Api/Clientes.Api.csproj" />
+    <Project Path="src/Clientes/Clientes.Aplicacion/Clientes.Aplicacion.csproj" />
+    <Project Path="src/Clientes/Clientes.Dominio/Clientes.Dominio.csproj" />
+    <Project Path="src/Clientes/Clientes.Infraestructura/Clientes.Infraestructura.csproj" />
+  </Folder>
+  <Folder Name="/src/Construccion/">
+    <Project Path="src/Construccion/Contratos.Compartidos/Contratos.Compartidos.csproj" />
+    <Project Path="src/Construccion/Observabilidad.Compartida/Observabilidad.Compartida.csproj" />
+  </Folder>
+  <Folder Name="/src/Cuentas/">
+    <Project Path="src/Cuentas/Cuentas.Api/Cuentas.Api.csproj" />
+    <Project Path="src/Cuentas/Cuentas.Aplicacion/Cuentas.Aplicacion.csproj" />
+    <Project Path="src/Cuentas/Cuentas.Dominio/Cuentas.Dominio.csproj" />
+    <Project Path="src/Cuentas/Cuentas.Infraestructura/Cuentas.Infraestructura.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Clientes.Dominio.Pruebas/Clientes.Dominio.Pruebas.csproj" />
+    <Project Path="tests/Clientes.Integracion.Pruebas/Clientes.Integracion.Pruebas.csproj" />
+  </Folder>
+</Solution>

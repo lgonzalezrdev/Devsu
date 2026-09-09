@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cuentas.Aplicacion\Cuentas.Aplicacion.csproj" />
+    <ProjectReference Include="..\Cuentas.Infraestructura\Cuentas.Infraestructura.csproj" />
+    <ProjectReference Include="..\..\Construccion\Observabilidad.Compartida\Observabilidad.Compartida.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
