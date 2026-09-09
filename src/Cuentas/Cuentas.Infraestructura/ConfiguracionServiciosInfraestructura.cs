@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Cuentas.Infraestructura.Persistencia;
 
 namespace Cuentas.Infraestructura;
 
@@ -9,7 +11,13 @@ public static class ConfiguracionServiciosInfraestructura
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        // Aquí se registrarán DbContext, repositorios, publicadores y consumidores de eventos.
+        var cadenaConexion = configuracion.GetConnectionString("Cuentas")
+            ?? throw new InvalidOperationException("No se configuró la cadena de conexión 'Cuentas'.");
+
+        servicios.AddDbContext<ContextoCuentas>(opciones =>
+            opciones.UseSqlServer(cadenaConexion, sqlServer => sqlServer.EnableRetryOnFailure()));
+
+        // Aquí se registrarán repositorios, publicadores y consumidores de eventos.
         return servicios;
     }
 }

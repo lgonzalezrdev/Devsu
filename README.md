@@ -30,6 +30,12 @@ database/        # BaseDatos.sql
 postman/         # Colección de validación
 ```
 
+## Base de datos local
+
+La solución usa SQL Server LocalDB por defecto. Ejecuta el script `BaseDatos.sql` desde SQL Server Management Studio para crear el esquema inicial. Si tu instancia local está disponible y deseas que EF Core cree las bases al arrancar, cambia `BaseDatos:InicializarAlArrancar` a `true` en ambos `appsettings.json`. Más adelante se reemplazará `EnsureCreated` por migraciones de EF Core durante el despliegue Docker.
+
+También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio. Si usas otra instancia, actualiza las cadenas `Clientes` y `Cuentas` en los archivos `appsettings.json` de las APIs.
+
 ## Estado actual
 
-La solución contiene el esqueleto de proyectos, referencias entre capas y puntos de composición de dependencias. Los endpoints de negocio, EF Core, RabbitMQ, Docker y las pruebas se incorporarán en los siguientes incrementos.
+La solución incluye modelos de dominio, contextos EF Core y el script inicial de SQL Server. Los endpoints de negocio, repositorios, RabbitMQ, Docker y las pruebas se incorporarán en los siguientes incrementos.
