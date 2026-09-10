@@ -45,3 +45,5 @@ La solución incluye modelos de dominio, contextos EF Core, script inicial de SQ
 ## Postman
 
 Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. La colección usa `https://{{servidor}}:{{puerto}}`; ajusta las variables `servidor` y `puerto` según el perfil de inicio de Visual Studio.
+
+La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Antes de ejecutarla, asigna a `clienteId` el identificador de un cliente existente.

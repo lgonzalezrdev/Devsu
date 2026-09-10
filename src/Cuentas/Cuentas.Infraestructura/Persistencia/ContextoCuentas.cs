@@ -23,7 +23,6 @@ public sealed class ContextoCuentas(DbContextOptions<ContextoCuentas> opciones) 
             entidad.Property(cuenta => cuenta.SaldoInicial).HasPrecision(18, 2).IsRequired();
             entidad.Property(cuenta => cuenta.SaldoDisponible).HasPrecision(18, 2).IsRequired();
             entidad.Property(cuenta => cuenta.Estado).IsRequired();
-            entidad.Ignore(cuenta => cuenta.Movimientos);
         });
 
         modelBuilder.Entity<Movimiento>(entidad =>
@@ -31,7 +30,7 @@ public sealed class ContextoCuentas(DbContextOptions<ContextoCuentas> opciones) 
             entidad.ToTable("Movimientos", "cuentas");
             entidad.HasKey(movimiento => movimiento.MovimientoId);
             entidad.Property(movimiento => movimiento.MovimientoId).ValueGeneratedNever();
-            entidad.Property(movimiento => movimiento.Fecha).IsRequired();
+            entidad.Property(movimiento => movimiento.Fecha).HasColumnType("datetime2(0)").IsRequired();
             entidad.Property(movimiento => movimiento.TipoMovimiento).HasConversion<string>().HasMaxLength(20).IsRequired();
             entidad.Property(movimiento => movimiento.Valor).HasPrecision(18, 2).IsRequired();
             entidad.Property(movimiento => movimiento.Saldo).HasPrecision(18, 2).IsRequired();

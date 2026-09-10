@@ -28,7 +28,7 @@ public sealed class ContextoClientes(DbContextOptions<ContextoClientes> opciones
             entidad.ToTable("Clientes", "clientes");
             entidad.Ignore(cliente => cliente.ClienteId);
             entidad.Property(cliente => cliente.ContrasenaHash).HasMaxLength(500).IsRequired();
-            entidad.Property(cliente => cliente.Estado).HasDefaultValue(true).IsRequired();
+            entidad.Property(cliente => cliente.Estado).IsRequired();
         });
     }
 }

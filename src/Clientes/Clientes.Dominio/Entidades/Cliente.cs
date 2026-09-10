@@ -34,6 +34,7 @@ public sealed class Cliente : Persona
 
     public bool Estado { get; private set; } = true;
 
+    /// <summary>Cambia el estado y evita inactivar dos veces el mismo cliente.</summary>
     public void CambiarEstado(bool estado)
     {
         if (!estado && !Estado)
@@ -44,6 +45,7 @@ public sealed class Cliente : Persona
         Estado = estado;
     }
 
+    /// <summary>Actualiza los datos personales que pertenecen al cliente.</summary>
     public void Actualizar(
         string nombre,
         Genero genero,
@@ -55,6 +57,7 @@ public sealed class Cliente : Persona
         ActualizarDatosPersonales(nombre, genero, edad, identificacion, direccion, telefono);
     }
 
+    /// <summary>Reemplaza la contraseña almacenada por un hash válido.</summary>
     public void CambiarContrasena(string contrasenaHash)
     {
         if (string.IsNullOrWhiteSpace(contrasenaHash))

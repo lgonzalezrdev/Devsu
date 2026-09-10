@@ -76,9 +76,12 @@ BEGIN
         TipoCuenta NVARCHAR(20) NOT NULL,
         SaldoInicial DECIMAL(18, 2) NOT NULL,
         SaldoDisponible DECIMAL(18, 2) NOT NULL,
-        Estado BIT NOT NULL,
+        Estado BIT NOT NULL CONSTRAINT DF_Cuentas_Estado DEFAULT 1,
         CONSTRAINT PK_Cuentas PRIMARY KEY (CuentaId),
-        CONSTRAINT UQ_Cuentas_NumeroCuenta UNIQUE (NumeroCuenta)
+        CONSTRAINT UQ_Cuentas_NumeroCuenta UNIQUE (NumeroCuenta),
+        CONSTRAINT CK_Cuentas_NumeroCuenta CHECK (LEN(NumeroCuenta) = 6 AND NumeroCuenta NOT LIKE '%[^0-9]%'),
+        CONSTRAINT CK_Cuentas_TipoCuenta CHECK (TipoCuenta IN (N'Ahorros', N'Corriente')),
+        CONSTRAINT CK_Cuentas_Saldos CHECK (SaldoInicial >= 0 AND SaldoDisponible >= 0)
     );
 END;
 GO
@@ -89,11 +92,12 @@ BEGIN
     (
         MovimientoId UNIQUEIDENTIFIER NOT NULL,
         CuentaId UNIQUEIDENTIFIER NOT NULL,
-        Fecha DATETIMEOFFSET NOT NULL,
+        Fecha DATETIME2(0) NOT NULL,
         TipoMovimiento NVARCHAR(20) NOT NULL,
         Valor DECIMAL(18, 2) NOT NULL,
         Saldo DECIMAL(18, 2) NOT NULL,
         CONSTRAINT PK_Movimientos PRIMARY KEY (MovimientoId),
+        CONSTRAINT CK_Movimientos_Valor CHECK ((TipoMovimiento = N'Deposito' AND Valor > 0) OR (TipoMovimiento = N'Retiro' AND Valor < 0)),
         CONSTRAINT FK_Movimientos_Cuentas FOREIGN KEY (CuentaId)
             REFERENCES cuentas.Cuentas(CuentaId)
     );

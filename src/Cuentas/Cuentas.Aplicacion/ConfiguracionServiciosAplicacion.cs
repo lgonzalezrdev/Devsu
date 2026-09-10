@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Cuentas.Aplicacion.Servicios;
 
 namespace Cuentas.Aplicacion;
 
@@ -6,7 +7,7 @@ public static class ConfiguracionServiciosAplicacion
 {
     public static IServiceCollection AgregarServiciosAplicacionCuentas(this IServiceCollection servicios)
     {
-        // Aquí se registrarán casos de uso, validadores y manejadores de comandos/consultas.
+        servicios.AddScoped<IServicioCuentas, ServicioCuentas>();
         return servicios;
     }
 }

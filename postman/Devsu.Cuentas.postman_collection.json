@@ -1,0 +1,54 @@
+{
+  "info": {
+    "_postman_id": "f7ee6360-4017-4d2a-aa5b-20f75082f1c2",
+    "name": "Devsu - Cuentas y Movimientos",
+    "description": "Ejecuta en orden. Define clienteId con un cliente existente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "servidor", "value": "localhost", "type": "string" },
+    { "key": "puerto", "value": "7254", "type": "string" },
+    { "key": "clienteId", "value": "REEMPLAZAR-POR-CLIENTE-ID", "type": "string" },
+    { "key": "cuentaId", "value": "", "type": "string" },
+    { "key": "movimientoId", "value": "", "type": "string" },
+  ],
+  "item": [
+    {
+      "name": "Salud - Cuentas",
+      "request": { "method": "GET", "header": [], "url": "https://{{servidor}}:{{puerto}}/salud" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+    },
+    {
+      "name": "Crear cuenta",
+      "event": [
+        { "listen": "test", "script": { "exec": ["pm.test('Responde 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('cuentaId', pm.response.json().cuentaId);"], "type": "text/javascript" } }
+      ],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"tipoCuenta\": \"Ahorros\",\n  \"saldoInicial\": 2000\n}", "options": { "raw": { "language": "json" } } }, "url": "https://{{servidor}}:{{puerto}}/api/cuentas" }
+    },
+    {
+      "name": "Consultar cuenta",
+      "request": { "method": "GET", "header": [], "url": "https://{{servidor}}:{{puerto}}/api/cuentas/{{cuentaId}}" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 200', () => pm.response.to.have.status(200));"], "type": "text/javascript" } }]
+    },
+    {
+      "name": "Registrar depósito",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('movimientoId', pm.response.json().movimientoId);", "pm.test('Saldo esperado', () => pm.expect(pm.response.json().saldo).to.eql(2600));"], "type": "text/javascript" } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"Deposito\",\n  \"valor\": 600\n}", "options": { "raw": { "language": "json" } } }, "url": "https://{{servidor}}:{{puerto}}/api/movimientos" }
+    },
+    {
+      "name": "Registrar retiro",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 201', () => pm.response.to.have.status(201));", "pm.test('Saldo esperado', () => pm.expect(pm.response.json().saldo).to.eql(2025));"], "type": "text/javascript" } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"Retiro\",\n  \"valor\": 575\n}", "options": { "raw": { "language": "json" } } }, "url": "https://{{servidor}}:{{puerto}}/api/movimientos" }
+    },
+    {
+      "name": "Validar saldo no disponible",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 422', () => pm.response.to.have.status(422));", "pm.test('Mensaje correcto', () => pm.expect(pm.response.json().detail).to.eql('Saldo no disponible'));"], "type": "text/javascript" } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"cuentaId\": \"{{cuentaId}}\",\n  \"tipoMovimiento\": \"Retiro\",\n  \"valor\": 999999\n}", "options": { "raw": { "language": "json" } } }, "url": "https://{{servidor}}:{{puerto}}/api/movimientos" }
+    },
+    {
+      "name": "Consultar movimientos",
+      "request": { "method": "GET", "header": [], "url": "https://{{servidor}}:{{puerto}}/api/movimientos?cuentaId={{cuentaId}}" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 200', () => pm.response.to.have.status(200));", "pm.test('Retorna dos movimientos', () => pm.expect(pm.response.json()).to.have.length(2));"], "type": "text/javascript" } }]
+    }
+  ]
+}
