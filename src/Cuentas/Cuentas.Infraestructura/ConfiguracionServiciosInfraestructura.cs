@@ -5,6 +5,7 @@ using Cuentas.Infraestructura.Persistencia;
 using Cuentas.Aplicacion.Contratos;
 using Cuentas.Infraestructura.Generacion;
 using Cuentas.Infraestructura.Mensajeria.Consumidores;
+using Cuentas.Infraestructura.Mensajeria;
 using MassTransit;
 
 namespace Cuentas.Infraestructura;
@@ -54,6 +55,11 @@ public static class ConfiguracionServiciosInfraestructura
                     });
                 });
             });
+            servicios.AddScoped<IPublicadorEventosIntegracion, PublicadorEventosMassTransit>();
+        }
+        else
+        {
+            servicios.AddSingleton<IPublicadorEventosIntegracion, PublicadorEventosNulo>();
         }
 
         return servicios;

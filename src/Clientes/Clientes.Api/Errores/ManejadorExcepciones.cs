@@ -28,6 +28,11 @@ public sealed partial class ManejadorExcepciones(
             codigoEstado = StatusCodes.Status400BadRequest;
             titulo = "Regla de negocio no cumplida";
         }
+        else if (exception is ConsultaReporteInvalidaException)
+        {
+            codigoEstado = StatusCodes.Status400BadRequest;
+            titulo = "Consulta de reporte inválida";
+        }
         else if (exception is DbUpdateException)
         {
             codigoEstado = StatusCodes.Status409Conflict;

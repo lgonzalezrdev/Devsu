@@ -20,4 +20,6 @@ public interface IServicioCuentas
     Task<MovimientoRespuesta> CrearMovimientoAsync(CrearMovimientoSolicitud solicitud, CancellationToken tokenCancelacion);
     /// <summary>Actualiza un movimiento y recalcula los saldos de la cuenta.</summary>
     Task ActualizarMovimientoAsync(Guid movimientoId, ActualizarMovimientoSolicitud solicitud, CancellationToken tokenCancelacion);
+    /// <summary>Republica las cuentas para reconstruir la proyección de reportes.</summary>
+    Task SincronizarTodosAsync(CancellationToken tokenCancelacion);
 }

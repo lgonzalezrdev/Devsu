@@ -10,7 +10,7 @@
     { "key": "puerto", "value": "7254", "type": "string" },
     { "key": "clienteId", "value": "REEMPLAZAR-POR-CLIENTE-ID", "type": "string" },
     { "key": "cuentaId", "value": "", "type": "string" },
-    { "key": "movimientoId", "value": "", "type": "string" },
+    { "key": "movimientoId", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -49,6 +49,11 @@
       "name": "Consultar movimientos",
       "request": { "method": "GET", "header": [], "url": "https://{{servidor}}:{{puerto}}/api/movimientos?cuentaId={{cuentaId}}" },
       "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 200', () => pm.response.to.have.status(200));", "pm.test('Retorna dos movimientos', () => pm.expect(pm.response.json()).to.have.length(2));"], "type": "text/javascript" } }]
+    },
+    {
+      "name": "Sincronizar cuentas para reportes",
+      "request": { "method": "POST", "header": [], "url": "https://{{servidor}}:{{puerto}}/api/cuentas/sincronizar" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 202', () => pm.response.to.have.status(202));"], "type": "text/javascript" } }]
     }
   ]
 }

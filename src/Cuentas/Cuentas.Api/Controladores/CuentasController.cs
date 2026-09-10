@@ -34,4 +34,12 @@ public sealed class CuentasController(IServicioCuentas servicioCuentas) : Contro
         await servicioCuentas.ActualizarEstadoCuentaAsync(cuentaId, solicitud, tokenCancelacion);
         return NoContent();
     }
+
+    [HttpPost("sincronizar")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> SincronizarTodos(CancellationToken tokenCancelacion)
+    {
+        await servicioCuentas.SincronizarTodosAsync(tokenCancelacion);
+        return Accepted();
+    }
 }

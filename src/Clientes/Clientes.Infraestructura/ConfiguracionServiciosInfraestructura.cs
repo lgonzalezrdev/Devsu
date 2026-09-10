@@ -5,6 +5,7 @@ using Clientes.Infraestructura.Persistencia;
 using Clientes.Infraestructura.Seguridad;
 using Clientes.Aplicacion.Contratos;
 using Clientes.Infraestructura.Mensajeria;
+using Clientes.Infraestructura.Mensajeria.Consumidores;
 using MassTransit;
 
 namespace Clientes.Infraestructura;
@@ -22,6 +23,7 @@ public static class ConfiguracionServiciosInfraestructura
             opciones.UseSqlServer(cadenaConexion, sqlServer => sqlServer.EnableRetryOnFailure()));
 
         servicios.AddScoped<IRepositorioClientes, RepositorioClientes>();
+        servicios.AddScoped<IRepositorioReportes, RepositorioReportes>();
         servicios.AddSingleton<IEncriptadorContrasena, EncriptadorContrasena>();
 
         bool mensajeriaActiva = configuracion.GetValue<bool>("Mensajeria:Activa");
@@ -35,6 +37,7 @@ public static class ConfiguracionServiciosInfraestructura
 
             servicios.AddMassTransit(configurador =>
             {
+                configurador.AddConsumer<ConsumidorCuentaReporteSincronizada>();
                 configurador.UsingRabbitMq((contexto, configuradorRabbitMq) =>
                 {
                     configuradorRabbitMq.Host(host, puerto, "/", configuradorHost =>
@@ -44,6 +47,12 @@ public static class ConfiguracionServiciosInfraestructura
                     });
                     configuradorRabbitMq.UseMessageRetry(configuradorReintento => configuradorReintento.Intervals(
                         TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5)));
+                    configuradorRabbitMq.ReceiveEndpoint("clientes-reportes", configuradorEndpoint =>
+                    {
+                        configuradorEndpoint.ConfigureConsumer<ConsumidorCuentaReporteSincronizada>(contexto);
+                        configuradorEndpoint.UseMessageRetry(configuradorReintento => configuradorReintento.Intervals(
+                            TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5)));
+                    });
                 });
             });
             servicios.AddScoped<IPublicadorEventosIntegracion, PublicadorEventosMassTransit>();

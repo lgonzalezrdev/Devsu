@@ -9,3 +9,5 @@ Ejecuta [002_validaciones_cuentas_movimientos.sql](002_validaciones_cuentas_movi
 Ejecuta [003_fecha_movimiento_datetime2.sql](003_fecha_movimiento_datetime2.sql) para guardar los movimientos con precisión de segundos.
 
 Ejecuta [004_proyeccion_clientes_integracion.sql](004_proyeccion_clientes_integracion.sql) antes de activar RabbitMQ. Crea la proyección local que Cuentas usa para validar, de forma asíncrona, la existencia y el estado del cliente.
+
+Ejecuta [005_proyeccion_reportes.sql](005_proyeccion_reportes.sql) antes de probar el reporte. Crea en DevsuClientes las proyecciones recibidas desde Cuentas para generar el estado de cuenta.

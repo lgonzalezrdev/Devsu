@@ -52,8 +52,22 @@ En ambos `appsettings.json`, cambia `Mensajeria:Activa` a `true`, inicia primero
 
 Mientras `Mensajeria:Activa` sea `false` (valor predeterminado), Clientes mantiene su ejecución local sin RabbitMQ. En ese modo no se sincronizan clientes y Cuentas rechazará nuevas cuentas porque no puede validar de forma distribuida su propietario.
 
+## Reporte de estado de cuenta
+
+El reporte se consulta en Clientes con el siguiente formato, donde `cliente` es el identificador GUID y `fecha` es un rango inclusivo:
+
+```text
+GET /api/reportes?cliente={clienteId}&fecha=yyyy-MM-dd%20HH:mm:ss,yyyy-MM-dd%20HH:mm:ss
+```
+
+Cuentas publica una instantánea de la cuenta y de todos sus movimientos después de cada creación o modificación. Clientes la consume en las tablas de proyección `CuentasReporte` y `MovimientosReporte`; por ello el reporte no realiza peticiones HTTP a Cuentas ni accede a `DevsuCuentas`.
+
+Para cargar cuentas existentes al activar esta funcionalidad, ejecuta `POST /api/cuentas/sincronizar` y espera unos segundos antes de consultar el reporte. Requiere haber ejecutado [005_proyeccion_reportes.sql](database/actualizaciones/005_proyeccion_reportes.sql).
+
 ## Postman
 
 Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. La colección usa `https://{{servidor}}:{{puerto}}`; ajusta las variables `servidor` y `puerto` según el perfil de inicio de Visual Studio.
 
 La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Con la mensajería activa, primero crea o sincroniza el cliente y espera unos segundos antes de usar su `clienteId` para crear una cuenta.
+
+La colección [Devsu.Reportes.postman_collection.json](postman/Devsu.Reportes.postman_collection.json) valida el endpoint de estado de cuenta.

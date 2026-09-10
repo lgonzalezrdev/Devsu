@@ -8,6 +8,7 @@ public static class ConfiguracionServiciosAplicacion
     public static IServiceCollection AgregarServiciosAplicacionClientes(this IServiceCollection servicios)
     {
         servicios.AddScoped<IServicioClientes, ServicioClientes>();
+        servicios.AddScoped<IServicioReportes, ServicioReportes>();
         return servicios;
     }
 }
