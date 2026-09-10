@@ -11,7 +11,7 @@ public static class ConfiguracionServiciosInfraestructura
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        var cadenaConexion = configuracion.GetConnectionString("Cuentas")
+        string cadenaConexion = configuracion.GetConnectionString("Cuentas")
             ?? throw new InvalidOperationException("No se configuró la cadena de conexión 'Cuentas'.");
 
         servicios.AddDbContext<ContextoCuentas>(opciones =>

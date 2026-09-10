@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Clientes.Infraestructura.Persistencia;
+using Clientes.Infraestructura.Seguridad;
+using Clientes.Aplicacion.Contratos;
 
 namespace Clientes.Infraestructura;
 
@@ -11,13 +13,16 @@ public static class ConfiguracionServiciosInfraestructura
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        var cadenaConexion = configuracion.GetConnectionString("Clientes")
+        string cadenaConexion = configuracion.GetConnectionString("Clientes")
             ?? throw new InvalidOperationException("No se configuró la cadena de conexión 'Clientes'.");
 
         servicios.AddDbContext<ContextoClientes>(opciones =>
             opciones.UseSqlServer(cadenaConexion, sqlServer => sqlServer.EnableRetryOnFailure()));
 
-        // Aquí se registrarán repositorios, publicadores y consumidores de eventos.
+        servicios.AddScoped<IRepositorioClientes, RepositorioClientes>();
+        servicios.AddSingleton<IEncriptadorContrasena, EncriptadorContrasena>();
+
+        // Aquí se registrarán publicadores y consumidores de eventos.
         return servicios;
     }
 }

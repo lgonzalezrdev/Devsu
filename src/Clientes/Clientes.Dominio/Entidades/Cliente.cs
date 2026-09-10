@@ -1,5 +1,7 @@
 namespace Clientes.Dominio.Entidades;
 
+using Clientes.Dominio.Enumeraciones;
+
 public sealed class Cliente : Persona
 {
     private Cliente()
@@ -9,22 +11,20 @@ public sealed class Cliente : Persona
     public Cliente(
         Guid personaId,
         string nombre,
-        string genero,
+        Genero genero,
         int edad,
         string identificacion,
         string direccion,
         string telefono,
-        string contrasenaHash,
-        bool estado)
+        string contrasenaHash)
         : base(personaId, nombre, genero, edad, identificacion, direccion, telefono)
     {
         if (string.IsNullOrWhiteSpace(contrasenaHash))
         {
-            throw new ArgumentException("La contraseña es obligatoria.", nameof(contrasenaHash));
+            throw new Excepciones.ExcepcionReglaDominioException("La contraseña es obligatoria.");
         }
 
         ContrasenaHash = contrasenaHash;
-        Estado = estado;
     }
 
     // ClienteId es la misma clave heredada de Persona en el modelo de dominio.
@@ -32,7 +32,36 @@ public sealed class Cliente : Persona
 
     public string ContrasenaHash { get; private set; } = null!;
 
-    public bool Estado { get; private set; }
+    public bool Estado { get; private set; } = true;
 
-    public void CambiarEstado(bool estado) => Estado = estado;
+    public void CambiarEstado(bool estado)
+    {
+        if (!estado && !Estado)
+        {
+            throw new Excepciones.ExcepcionReglaDominioException("El cliente ya se encuentra inactivo; el estado no ha cambiado.");
+        }
+
+        Estado = estado;
+    }
+
+    public void Actualizar(
+        string nombre,
+        Genero genero,
+        int edad,
+        string identificacion,
+        string direccion,
+        string telefono)
+    {
+        ActualizarDatosPersonales(nombre, genero, edad, identificacion, direccion, telefono);
+    }
+
+    public void CambiarContrasena(string contrasenaHash)
+    {
+        if (string.IsNullOrWhiteSpace(contrasenaHash))
+        {
+            throw new Excepciones.ExcepcionReglaDominioException("La contraseña es obligatoria.");
+        }
+
+        ContrasenaHash = contrasenaHash;
+    }
 }

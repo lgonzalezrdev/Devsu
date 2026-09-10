@@ -1,0 +1,294 @@
+{
+  "info": {
+    "_postman_id": "20b8ca1f-0a38-4c0d-89af-54805a4e8b0b",
+    "name": "Devsu - Clientes",
+    "description": "Validación del CRUD de Clientes. Ejecuta las solicitudes en el orden indicado.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "servidor",
+      "value": "localhost",
+      "type": "string"
+    },
+    {
+      "key": "puerto",
+      "value": "7176",
+      "type": "string"
+    },
+    {
+      "key": "clienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "identificacionClientePrueba",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Salud - Clientes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/salud"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Estado saludable', () => pm.expect(pm.response.text()).to.eql('Healthy'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear cliente",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set('identificacionClientePrueba', String(Date.now()).substring(0, 10));"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+              "const cliente = pm.response.json();",
+              "pm.test('Retorna el identificador del cliente', () => pm.expect(cliente.clienteId).to.be.a('string').and.not.empty);",
+              "pm.collectionVariables.set('clienteId', cliente.clienteId);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente Postman\",\n  \"genero\": \"NoEspecificado\",\n  \"edad\": 30,\n  \"identificacion\": \"{{identificacionClientePrueba}}\",\n  \"direccion\": \"Dirección de prueba\",\n  \"telefono\": \"0999999999\",\n  \"contrasena\": \"Prueba123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes"
+      }
+    },
+    {
+      "name": "Consultar todos los clientes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Retorna una colección', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar cliente por identificador",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+              "pm.test('Es el cliente creado', () => pm.expect(pm.response.json().clienteId).to.eql(pm.collectionVariables.get('clienteId')));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actualizar cliente",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Cliente Postman Actualizado\",\n  \"genero\": \"NoEspecificado\",\n  \"edad\": 31,\n  \"identificacion\": \"{{identificacionClientePrueba}}\",\n  \"direccion\": \"Dirección actualizada\",\n  \"telefono\": \"0988888888\",\n  \"contrasena\": \"NuevaClave123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cambiar estado del cliente",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}/estado"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verificar estado actualizado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Cliente inactivo', () => pm.expect(pm.response.json().estado).to.eql(false));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Intentar inactivar cliente ya inactivo",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}/estado"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+              "pm.test('Informa que el estado no cambió', () => pm.expect(pm.response.json().detail).to.eql('El cliente ya se encuentra inactivo; el estado no ha cambiado.'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar cliente",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verificar cliente eliminado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/{{clienteId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

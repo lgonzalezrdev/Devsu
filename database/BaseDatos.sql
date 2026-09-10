@@ -34,7 +34,11 @@ BEGIN
         Direccion NVARCHAR(250) NOT NULL CONSTRAINT DF_Personas_Direccion DEFAULT N'',
         Telefono NVARCHAR(30) NOT NULL CONSTRAINT DF_Personas_Telefono DEFAULT N'',
         CONSTRAINT PK_Personas PRIMARY KEY (PersonaId),
-        CONSTRAINT UQ_Personas_Identificacion UNIQUE (Identificacion)
+        CONSTRAINT UQ_Personas_Identificacion UNIQUE (Identificacion),
+        CONSTRAINT CK_Personas_Identificacion CHECK (LEN(Identificacion) = 10 AND Identificacion NOT LIKE '%[^0-9]%'),
+        CONSTRAINT CK_Personas_Genero CHECK (Genero IN (N'Masculino', N'Femenino', N'Otro', N'NoEspecificado')),
+        CONSTRAINT CK_Personas_Direccion CHECK (LEN(Direccion) BETWEEN 5 AND 250),
+        CONSTRAINT CK_Personas_Telefono CHECK (LEN(Telefono) BETWEEN 7 AND 15 AND Telefono NOT LIKE '%[^0-9]%')
     );
 END;
 GO
@@ -45,7 +49,7 @@ BEGIN
     (
         PersonaId UNIQUEIDENTIFIER NOT NULL,
         ContrasenaHash NVARCHAR(500) NOT NULL,
-        Estado BIT NOT NULL,
+        Estado BIT NOT NULL CONSTRAINT DF_Clientes_Estado DEFAULT 1,
         CONSTRAINT PK_Clientes PRIMARY KEY (PersonaId),
         CONSTRAINT FK_Clientes_Personas FOREIGN KEY (PersonaId)
             REFERENCES clientes.Personas(PersonaId) ON DELETE CASCADE

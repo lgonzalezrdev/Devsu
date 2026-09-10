@@ -1,27 +1,31 @@
 using Clientes.Aplicacion;
+using Clientes.Api.Errores;
+using Clientes.Api.Serializacion;
 using Clientes.Infraestructura;
-using Clientes.Infraestructura.Persistencia;
-using Microsoft.EntityFrameworkCore;
+using Clientes.Dominio.Enumeraciones;
+using System.Text.Json.Serialization;
 
-var constructor = WebApplication.CreateBuilder(args);
+WebApplicationBuilder constructor = WebApplication.CreateBuilder(args);
 
-constructor.Services.AddControllers();
+constructor.Logging.ClearProviders();
+constructor.Logging.AddConsole();
+constructor.Services.AddControllers().AddJsonOptions(opciones =>
+    opciones.JsonSerializerOptions.Converters.Add(new ConvertidorGenero()));
 constructor.Services.AddHealthChecks();
 constructor.Services.AddProblemDetails();
+constructor.Services.AddExceptionHandler<ManejadorExcepciones>();
 constructor.Services.AgregarServiciosAplicacionClientes();
 constructor.Services.AgregarServiciosInfraestructuraClientes(constructor.Configuration);
 
-var aplicacion = constructor.Build();
-
-if (constructor.Configuration.GetValue<bool>("BaseDatos:InicializarAlArrancar"))
-{
-    await using var alcance = aplicacion.Services.CreateAsyncScope();
-    var contexto = alcance.ServiceProvider.GetRequiredService<ContextoClientes>();
-    await contexto.Database.EnsureCreatedAsync();
-}
+WebApplication aplicacion = constructor.Build();
 
 aplicacion.UseExceptionHandler();
-aplicacion.UseHttpsRedirection();
+
+if (!aplicacion.Environment.IsDevelopment())
+{
+    aplicacion.UseHttpsRedirection();
+}
+
 aplicacion.MapControllers();
 aplicacion.MapHealthChecks("/salud");
 

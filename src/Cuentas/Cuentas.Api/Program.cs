@@ -1,27 +1,25 @@
 using Cuentas.Aplicacion;
 using Cuentas.Infraestructura;
-using Cuentas.Infraestructura.Persistencia;
-using Microsoft.EntityFrameworkCore;
 
-var constructor = WebApplication.CreateBuilder(args);
+WebApplicationBuilder constructor = WebApplication.CreateBuilder(args);
 
+constructor.Logging.ClearProviders();
+constructor.Logging.AddConsole();
 constructor.Services.AddControllers();
 constructor.Services.AddHealthChecks();
 constructor.Services.AddProblemDetails();
 constructor.Services.AgregarServiciosAplicacionCuentas();
 constructor.Services.AgregarServiciosInfraestructuraCuentas(constructor.Configuration);
 
-var aplicacion = constructor.Build();
-
-if (constructor.Configuration.GetValue<bool>("BaseDatos:InicializarAlArrancar"))
-{
-    await using var alcance = aplicacion.Services.CreateAsyncScope();
-    var contexto = alcance.ServiceProvider.GetRequiredService<ContextoCuentas>();
-    await contexto.Database.EnsureCreatedAsync();
-}
+WebApplication aplicacion = constructor.Build();
 
 aplicacion.UseExceptionHandler();
-aplicacion.UseHttpsRedirection();
+
+if (!aplicacion.Environment.IsDevelopment())
+{
+    aplicacion.UseHttpsRedirection();
+}
+
 aplicacion.MapControllers();
 aplicacion.MapHealthChecks("/salud");
 

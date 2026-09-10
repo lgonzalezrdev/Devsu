@@ -15,7 +15,7 @@ public sealed class ContextoClientes(DbContextOptions<ContextoClientes> opciones
             entidad.HasKey(persona => persona.PersonaId);
             entidad.Property(persona => persona.PersonaId).ValueGeneratedNever();
             entidad.Property(persona => persona.Nombre).HasMaxLength(150).IsRequired();
-            entidad.Property(persona => persona.Genero).HasMaxLength(30);
+            entidad.Property(persona => persona.Genero).HasConversion<string>().HasMaxLength(30).IsRequired();
             entidad.Property(persona => persona.Edad).IsRequired();
             entidad.Property(persona => persona.Identificacion).HasMaxLength(30).IsRequired();
             entidad.HasIndex(persona => persona.Identificacion).IsUnique();
@@ -28,7 +28,7 @@ public sealed class ContextoClientes(DbContextOptions<ContextoClientes> opciones
             entidad.ToTable("Clientes", "clientes");
             entidad.Ignore(cliente => cliente.ClienteId);
             entidad.Property(cliente => cliente.ContrasenaHash).HasMaxLength(500).IsRequired();
-            entidad.Property(cliente => cliente.Estado).IsRequired();
+            entidad.Property(cliente => cliente.Estado).HasDefaultValue(true).IsRequired();
         });
     }
 }

@@ -32,10 +32,16 @@ postman/         # Colección de validación
 
 ## Base de datos local
 
-La solución usa SQL Server LocalDB por defecto. Ejecuta el script `BaseDatos.sql` desde SQL Server Management Studio para crear el esquema inicial. Si tu instancia local está disponible y deseas que EF Core cree las bases al arrancar, cambia `BaseDatos:InicializarAlArrancar` a `true` en ambos `appsettings.json`. Más adelante se reemplazará `EnsureCreated` por migraciones de EF Core durante el despliegue Docker.
+La solución usa SQL Server LocalDB por defecto. Ejecuta el script `BaseDatos.sql` desde SQL Server Management Studio para crear el esquema inicial. No se usan migraciones ni creación automática del esquema: cualquier cambio futuro de base de datos se entregará como un script SQL incremental y también se incorporará a `BaseDatos.sql`.
+
+Si ya creaste las bases antes de las validaciones de Clientes, ejecuta también [001_validaciones_clientes.sql](database/actualizaciones/001_validaciones_clientes.sql).
 
 También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio. Si usas otra instancia, actualiza las cadenas `Clientes` y `Cuentas` en los archivos `appsettings.json` de las APIs.
 
 ## Estado actual
 
-La solución incluye modelos de dominio, contextos EF Core y el script inicial de SQL Server. Los endpoints de negocio, repositorios, RabbitMQ, Docker y las pruebas se incorporarán en los siguientes incrementos.
+La solución incluye modelos de dominio, contextos EF Core, script inicial de SQL Server y CRUD de Clientes. RabbitMQ, Cuentas, Movimientos, reportes, Docker y las pruebas se incorporarán en los siguientes incrementos.
+
+## Postman
+
+Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. La colección usa `https://{{servidor}}:{{puerto}}`; ajusta las variables `servidor` y `puerto` según el perfil de inicio de Visual Studio.
