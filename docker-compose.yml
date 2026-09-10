@@ -1,0 +1,100 @@
+name: devsu
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: devsu-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${SQL_SERVER_SA_PASSWORD:?Define SQL_SERVER_SA_PASSWORD en el archivo .env}
+    ports:
+      - "14333:1433"
+    volumes:
+      - datos-sqlserver:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  inicializador-bd:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: devsu-inicializador-bd
+    environment:
+      MSSQL_SA_PASSWORD: ${SQL_SERVER_SA_PASSWORD:?Define SQL_SERVER_SA_PASSWORD en el archivo .env}
+    volumes:
+      - ./database/BaseDatos.sql:/scripts/BaseDatos.sql:ro
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command: "/opt/mssql-tools18/bin/sqlcmd -C -S sqlserver -U sa -P \"$$MSSQL_SA_PASSWORD\" -i /scripts/BaseDatos.sql"
+    restart: "no"
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: devsu-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: devsu
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Define RABBITMQ_PASSWORD en el archivo .env}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cuentas-api:
+    build:
+      context: .
+      dockerfile: src/Cuentas/Cuentas.Api/Dockerfile
+    container_name: devsu-cuentas-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      RedireccionHttps__Activa: "false"
+      ConnectionStrings__Cuentas: "Server=sqlserver,1433;Database=DevsuCuentas;User Id=sa;Password=${SQL_SERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true"
+      Mensajeria__Activa: "true"
+      Mensajeria__Host: rabbitmq
+      Mensajeria__Puerto: "5672"
+      Mensajeria__Usuario: devsu
+      Mensajeria__Contrasena: ${RABBITMQ_PASSWORD}
+    ports:
+      - "8082:8080"
+    depends_on:
+      inicializador-bd:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  clientes-api:
+    build:
+      context: .
+      dockerfile: src/Clientes/Clientes.Api/Dockerfile
+    container_name: devsu-clientes-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      RedireccionHttps__Activa: "false"
+      ConnectionStrings__Clientes: "Server=sqlserver,1433;Database=DevsuClientes;User Id=sa;Password=${SQL_SERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=true"
+      Mensajeria__Activa: "true"
+      Mensajeria__Host: rabbitmq
+      Mensajeria__Puerto: "5672"
+      Mensajeria__Usuario: devsu
+      Mensajeria__Contrasena: ${RABBITMQ_PASSWORD}
+    ports:
+      - "8081:8080"
+    depends_on:
+      cuentas-api:
+        condition: service_started
+      inicializador-bd:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  datos-sqlserver:

@@ -53,7 +53,9 @@ WebApplication aplicacion = constructor.Build();
 
 aplicacion.UseExceptionHandler();
 
-if (!aplicacion.Environment.IsDevelopment())
+bool redireccionHttpsActiva = constructor.Configuration.GetValue("RedireccionHttps:Activa", true);
+
+if (!aplicacion.Environment.IsDevelopment() && redireccionHttpsActiva)
 {
     aplicacion.UseHttpsRedirection();
 }

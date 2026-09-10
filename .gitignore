@@ -13,6 +13,9 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# Variables locales de despliegue
+.env
+
 # Mono auto generated files
 mono_crash.*
 

@@ -71,3 +71,69 @@ Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_
 La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Con la mensajería activa, primero crea o sincroniza el cliente y espera unos segundos antes de usar su `clienteId` para crear una cuenta.
 
 La colección [Devsu.Reportes.postman_collection.json](postman/Devsu.Reportes.postman_collection.json) valida el endpoint de estado de cuenta.
+
+## Pruebas automatizadas
+
+Ejecuta todas las pruebas desde la raíz de la solución:
+
+```powershell
+dotnet test Devsu.Microservicios.slnx --configuration Release
+```
+
+La prueba unitaria valida que la entidad de dominio `Cliente` rechace una identificación inválida. Las pruebas de integración usan `WebApplicationFactory` y SQLite en memoria, por lo que no dependen ni alteran SQL Server LocalDB. Cubren creación y actualización de cliente, identificación duplicada, género inválido, cliente inexistente o inactivo al crear una cuenta, saldo inicial negativo y retiro sin saldo disponible.
+
+## Despliegue completo con Docker
+
+El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ, el inicializador de base de datos y ambas APIs. SQL Server conserva sus datos en un volumen de Docker; el inicializador ejecuta [BaseDatos.sql](database/BaseDatos.sql) de forma idempotente en cada inicio.
+
+1. Si antes iniciaste únicamente RabbitMQ, detenlo para liberar los puertos:
+
+```powershell
+docker compose -f docker-compose.mensajeria.yml down
+```
+
+2. Copia el archivo de variables y reemplaza ambas claves por valores seguros. No publiques el archivo `.env`.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+3. Construye e inicia toda la solución:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+4. Comprueba los servicios:
+
+```powershell
+Invoke-WebRequest http://localhost:8081/salud
+Invoke-WebRequest http://localhost:8082/salud
+```
+
+- Clientes API: `http://localhost:8081`
+- Cuentas API: `http://localhost:8082`
+- RabbitMQ Management: `http://localhost:15672` con usuario `devsu` y la clave `RABBITMQ_PASSWORD`.
+- SQL Server: `localhost,14333`, usuario `sa` y la clave `SQL_SERVER_SA_PASSWORD`.
+
+El perfil Docker expone HTTP para no almacenar certificados de desarrollo en el repositorio. Las ejecuciones locales desde Visual Studio continúan usando HTTPS con los puertos definidos en `launchSettings.json`.
+
+Para diagnosticar un servicio, consulta sus registros, por ejemplo:
+
+```powershell
+docker compose logs inicializador-bd
+docker compose logs cuentas-api
+```
+
+Para detener los contenedores sin borrar los datos:
+
+```powershell
+docker compose down
+```
+
+Para borrar también la base de datos persistida en Docker —acción irreversible—:
+
+```powershell
+docker compose down -v
+```
