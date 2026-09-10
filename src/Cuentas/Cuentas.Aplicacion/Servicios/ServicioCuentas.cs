@@ -8,7 +8,8 @@ namespace Cuentas.Aplicacion.Servicios;
 
 public sealed class ServicioCuentas(
     IRepositorioCuentas repositorioCuentas,
-    IGeneradorNumeroCuenta generadorNumeroCuenta) : IServicioCuentas
+    IGeneradorNumeroCuenta generadorNumeroCuenta,
+    IRepositorioClientesIntegracion repositorioClientes) : IServicioCuentas
 {
     public async Task<IReadOnlyCollection<CuentaRespuesta>> ObtenerCuentasAsync(CancellationToken tokenCancelacion)
     {
@@ -21,6 +22,18 @@ public sealed class ServicioCuentas(
 
     public async Task<CuentaRespuesta> CrearCuentaAsync(CrearCuentaSolicitud solicitud, CancellationToken tokenCancelacion)
     {
+        ClienteIntegracion? cliente = await repositorioClientes.ObtenerPorIdAsync(solicitud.ClienteId, tokenCancelacion);
+
+        if (cliente is null)
+        {
+            throw new ClienteNoDisponibleException("El cliente indicado no existe o aún no se ha sincronizado. Espere unos segundos e intente nuevamente.");
+        }
+
+        if (!cliente.Estado)
+        {
+            throw new ClienteNoDisponibleException("No se puede crear una cuenta para un cliente inactivo.");
+        }
+
         string numeroCuenta = await GenerarNumeroCuentaUnicoAsync(tokenCancelacion);
         Cuenta cuenta = new(Guid.NewGuid(), solicitud.ClienteId, numeroCuenta, solicitud.TipoCuenta, solicitud.SaldoInicial);
         await repositorioCuentas.AgregarCuentaAsync(cuenta, tokenCancelacion);

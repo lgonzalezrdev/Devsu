@@ -9,6 +9,8 @@ public sealed class ContextoCuentas(DbContextOptions<ContextoCuentas> opciones) 
 
     public DbSet<Movimiento> Movimientos => Set<Movimiento>();
 
+    public DbSet<ClienteIntegracion> ClientesIntegracion => Set<ClienteIntegracion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Cuenta>(entidad =>
@@ -38,6 +40,16 @@ public sealed class ContextoCuentas(DbContextOptions<ContextoCuentas> opciones) 
                 .WithMany()
                 .HasForeignKey(movimiento => movimiento.CuentaId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ClienteIntegracion>(entidad =>
+        {
+            entidad.ToTable("ClientesIntegracion", "cuentas");
+            entidad.HasKey(cliente => cliente.ClienteId);
+            entidad.Property(cliente => cliente.ClienteId).ValueGeneratedNever();
+            entidad.Property(cliente => cliente.Nombre).HasMaxLength(150).IsRequired();
+            entidad.Property(cliente => cliente.Estado).IsRequired();
+            entidad.Property(cliente => cliente.ActualizadoEn).HasColumnType("datetime2(0)").IsRequired();
         });
     }
 }

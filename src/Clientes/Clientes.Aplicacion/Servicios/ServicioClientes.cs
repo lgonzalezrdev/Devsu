@@ -2,12 +2,14 @@ using Clientes.Aplicacion.Contratos;
 using Clientes.Aplicacion.Excepciones;
 using Clientes.Aplicacion.Modelos;
 using Clientes.Dominio.Entidades;
+using Contratos.Compartidos.Eventos;
 
 namespace Clientes.Aplicacion.Servicios;
 
 public sealed class ServicioClientes(
     IRepositorioClientes repositorioClientes,
-    IEncriptadorContrasena encriptadorContrasena) : IServicioClientes
+    IEncriptadorContrasena encriptadorContrasena,
+    IPublicadorEventosIntegracion publicadorEventos) : IServicioClientes
 {
     public async Task<IReadOnlyCollection<ClienteRespuesta>> ObtenerTodosAsync(CancellationToken tokenCancelacion)
     {
@@ -35,6 +37,7 @@ public sealed class ServicioClientes(
 
         await repositorioClientes.AgregarAsync(cliente, tokenCancelacion);
         await repositorioClientes.GuardarCambiosAsync(tokenCancelacion);
+        await PublicarClienteSincronizadoAsync(cliente, tokenCancelacion);
 
         return ClienteRespuesta.DesdeEntidad(cliente);
     }
@@ -56,6 +59,7 @@ public sealed class ServicioClientes(
         }
 
         await repositorioClientes.GuardarCambiosAsync(tokenCancelacion);
+        await PublicarClienteSincronizadoAsync(cliente, tokenCancelacion);
     }
 
     public async Task ActualizarEstadoAsync(Guid clienteId, ActualizarEstadoClienteSolicitud solicitud, CancellationToken tokenCancelacion)
@@ -63,6 +67,7 @@ public sealed class ServicioClientes(
         Cliente cliente = await ObtenerClienteRequeridoAsync(clienteId, tokenCancelacion);
         cliente.CambiarEstado(solicitud.Estado);
         await repositorioClientes.GuardarCambiosAsync(tokenCancelacion);
+        await PublicarClienteSincronizadoAsync(cliente, tokenCancelacion);
     }
 
     public async Task EliminarAsync(Guid clienteId, CancellationToken tokenCancelacion)
@@ -70,9 +75,25 @@ public sealed class ServicioClientes(
         Cliente cliente = await ObtenerClienteRequeridoAsync(clienteId, tokenCancelacion);
         repositorioClientes.Eliminar(cliente);
         await repositorioClientes.GuardarCambiosAsync(tokenCancelacion);
+        await publicadorEventos.PublicarAsync(new ClienteEliminado(cliente.ClienteId, DateTime.UtcNow), tokenCancelacion);
+    }
+
+    public async Task SincronizarTodosAsync(CancellationToken tokenCancelacion)
+    {
+        IReadOnlyCollection<Cliente> clientes = await repositorioClientes.ObtenerTodosAsync(tokenCancelacion);
+
+        foreach (Cliente cliente in clientes)
+        {
+            await PublicarClienteSincronizadoAsync(cliente, tokenCancelacion);
+        }
     }
 
     private async Task<Cliente> ObtenerClienteRequeridoAsync(Guid clienteId, CancellationToken tokenCancelacion) =>
         await repositorioClientes.ObtenerPorIdAsync(clienteId, tokenCancelacion)
         ?? throw new ClienteNoEncontradoException(clienteId);
+
+    private Task PublicarClienteSincronizadoAsync(Cliente cliente, CancellationToken tokenCancelacion) =>
+        publicadorEventos.PublicarAsync(
+            new ClienteSincronizado(cliente.ClienteId, cliente.Nombre, cliente.Estado, DateTime.UtcNow),
+            tokenCancelacion);
 }

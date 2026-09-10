@@ -7,3 +7,5 @@ Ejecuta [001_validaciones_clientes.sql](001_validaciones_clientes.sql) antes de 
 Ejecuta [002_validaciones_cuentas_movimientos.sql](002_validaciones_cuentas_movimientos.sql) antes de probar Cuentas y Movimientos sobre una base existente.
 
 Ejecuta [003_fecha_movimiento_datetime2.sql](003_fecha_movimiento_datetime2.sql) para guardar los movimientos con precisión de segundos.
+
+Ejecuta [004_proyeccion_clientes_integracion.sql](004_proyeccion_clientes_integracion.sql) antes de activar RabbitMQ. Crea la proyección local que Cuentas usa para validar, de forma asíncrona, la existencia y el estado del cliente.

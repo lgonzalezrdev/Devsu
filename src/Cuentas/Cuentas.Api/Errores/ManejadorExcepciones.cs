@@ -11,11 +11,13 @@ public sealed partial class ManejadorExcepciones(ILogger<ManejadorExcepciones> r
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         int codigoEstado = exception is SaldoNoDisponibleException ? StatusCodes.Status422UnprocessableEntity
+            : exception is ClienteNoDisponibleException ? StatusCodes.Status409Conflict
             : exception is RecursoNoEncontradoException ? StatusCodes.Status404NotFound
             : exception is ExcepcionReglaDominioException ? StatusCodes.Status400BadRequest
             : exception is DbUpdateException ? StatusCodes.Status409Conflict
             : StatusCodes.Status500InternalServerError;
         string titulo = codigoEstado == StatusCodes.Status422UnprocessableEntity ? "Saldo no disponible"
+            : exception is ClienteNoDisponibleException ? "Cliente no disponible"
             : codigoEstado == StatusCodes.Status404NotFound ? "Recurso no encontrado"
             : codigoEstado == StatusCodes.Status400BadRequest ? "Regla de negocio no cumplida"
             : codigoEstado == StatusCodes.Status409Conflict ? "Conflicto de persistencia" : "Error interno del servidor";

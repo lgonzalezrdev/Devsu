@@ -21,4 +21,7 @@ public interface IServicioClientes
 
     /// <summary>Elimina un cliente existente.</summary>
     Task EliminarAsync(Guid clienteId, CancellationToken tokenCancelacion);
+
+    /// <summary>Republica todos los clientes para reconstruir proyecciones de otros servicios.</summary>
+    Task SincronizarTodosAsync(CancellationToken tokenCancelacion);
 }

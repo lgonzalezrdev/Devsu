@@ -253,6 +253,25 @@
       ]
     },
     {
+      "name": "Sincronizar clientes existentes",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "https://{{servidor}}:{{puerto}}/api/clientes/sincronizar"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Responde 202', () => pm.response.to.have.status(202));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
       "name": "Eliminar cliente",
       "request": {
         "method": "DELETE",

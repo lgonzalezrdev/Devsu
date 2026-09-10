@@ -4,10 +4,10 @@ Solución base para la prueba técnica, desarrollada con .NET 10 y Clean Archite
 
 ## Servicios
 
-- **Clientes**: gestiona Persona, Cliente y la consulta de reportes.
+- **Clientes**: gestiona Persona, Cliente y publica sus cambios de integración.
 - **Cuentas**: gestiona Cuenta y Movimiento.
 
-Cada servicio conserva su propia base de datos y se integrará asíncronamente mediante eventos de RabbitMQ.
+Cada servicio conserva su propia base de datos y se integra asíncronamente mediante eventos de RabbitMQ.
 
 ## Inyección de dependencias
 
@@ -38,12 +38,22 @@ Si ya creaste las bases antes de las validaciones de Clientes, ejecuta también 
 
 También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio. Si usas otra instancia, actualiza las cadenas `Clientes` y `Cuentas` en los archivos `appsettings.json` de las APIs.
 
-## Estado actual
+## Comunicación asíncrona: Clientes → Cuentas
 
-La solución incluye modelos de dominio, contextos EF Core, script inicial de SQL Server y CRUD de Clientes. RabbitMQ, Cuentas, Movimientos, reportes, Docker y las pruebas se incorporarán en los siguientes incrementos.
+El microservicio Clientes publica los eventos `ClienteSincronizado` y `ClienteEliminado`. Cuentas los consume mediante RabbitMQ y conserva únicamente una proyección local (`cuentas.ClientesIntegracion`) con identificador, nombre, estado y fecha de actualización. Por tanto, Cuentas no consulta la base de datos de Clientes ni usa comunicación HTTP síncrona para crear una cuenta.
+
+Antes de activarla en una base existente, ejecuta [004_proyeccion_clientes_integracion.sql](database/actualizaciones/004_proyeccion_clientes_integracion.sql). Luego inicia RabbitMQ:
+
+```powershell
+docker compose -f docker-compose.mensajeria.yml up -d
+```
+
+En ambos `appsettings.json`, cambia `Mensajeria:Activa` a `true`, inicia primero Cuentas y después Clientes. Finalmente llama a `POST /api/clientes/sincronizar` una vez para publicar los clientes que existían antes de activar la mensajería. A partir de entonces, cada alta, modificación, cambio de estado o eliminación se sincroniza de forma asíncrona.
+
+Mientras `Mensajeria:Activa` sea `false` (valor predeterminado), Clientes mantiene su ejecución local sin RabbitMQ. En ese modo no se sincronizan clientes y Cuentas rechazará nuevas cuentas porque no puede validar de forma distribuida su propietario.
 
 ## Postman
 
 Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. La colección usa `https://{{servidor}}:{{puerto}}`; ajusta las variables `servidor` y `puerto` según el perfil de inicio de Visual Studio.
 
-La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Antes de ejecutarla, asigna a `clienteId` el identificador de un cliente existente.
+La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Con la mensajería activa, primero crea o sincroniza el cliente y espera unos segundos antes de usar su `clienteId` para crear una cuenta.

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Clientes.Infraestructura.Persistencia;
 using Clientes.Infraestructura.Seguridad;
 using Clientes.Aplicacion.Contratos;
+using Clientes.Infraestructura.Mensajeria;
+using MassTransit;
 
 namespace Clientes.Infraestructura;
 
@@ -22,7 +24,35 @@ public static class ConfiguracionServiciosInfraestructura
         servicios.AddScoped<IRepositorioClientes, RepositorioClientes>();
         servicios.AddSingleton<IEncriptadorContrasena, EncriptadorContrasena>();
 
-        // Aquí se registrarán publicadores y consumidores de eventos.
+        bool mensajeriaActiva = configuracion.GetValue<bool>("Mensajeria:Activa");
+
+        if (mensajeriaActiva)
+        {
+            string host = configuracion["Mensajeria:Host"] ?? "localhost";
+            ushort puerto = configuracion.GetValue<ushort?>("Mensajeria:Puerto") ?? 5672;
+            string usuario = configuracion["Mensajeria:Usuario"] ?? "guest";
+            string contrasena = configuracion["Mensajeria:Contrasena"] ?? "guest";
+
+            servicios.AddMassTransit(configurador =>
+            {
+                configurador.UsingRabbitMq((contexto, configuradorRabbitMq) =>
+                {
+                    configuradorRabbitMq.Host(host, puerto, "/", configuradorHost =>
+                    {
+                        configuradorHost.Username(usuario);
+                        configuradorHost.Password(contrasena);
+                    });
+                    configuradorRabbitMq.UseMessageRetry(configuradorReintento => configuradorReintento.Intervals(
+                        TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5)));
+                });
+            });
+            servicios.AddScoped<IPublicadorEventosIntegracion, PublicadorEventosMassTransit>();
+        }
+        else
+        {
+            servicios.AddSingleton<IPublicadorEventosIntegracion, PublicadorEventosNulo>();
+        }
+
         return servicios;
     }
 }

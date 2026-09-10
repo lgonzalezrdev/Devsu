@@ -64,4 +64,12 @@ public sealed class ClientesController(IServicioClientes servicioClientes) : Con
         await servicioClientes.EliminarAsync(clienteId, tokenCancelacion);
         return NoContent();
     }
+
+    [HttpPost("sincronizar")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> SincronizarTodos(CancellationToken tokenCancelacion)
+    {
+        await servicioClientes.SincronizarTodosAsync(tokenCancelacion);
+        return Accepted();
+    }
 }
