@@ -34,7 +34,9 @@ postman/         # Colección de validación
 
 ## Base de datos local
 
-La solución usa SQL Server LocalDB por defecto. Ejecuta [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio para crear el esquema completo. No se usan migraciones ni creación automática del esquema; el archivo contiene todas las tablas, restricciones y proyecciones requeridas.
+La solución usa SQL Server LocalDB por defecto. Ejecuta [BaseDatos.sql](database/BaseDatos.sql) una sola vez, sobre una instancia nueva, desde SQL Server Management Studio para crear el esquema completo. No se usan migraciones ni creación automática del esquema; el archivo contiene todas las tablas, restricciones y proyecciones requeridas.
+
+La tabla `cuentas.Cuentas` incluye la columna `VersionFila` de SQL Server (`rowversion`) para concurrencia optimista. Si dos operaciones modifican el mismo saldo simultáneamente, una se confirma y la otra recibe HTTP 409 con un mensaje para consultar el saldo e intentar de nuevo.
 
 También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio. Si usas otra instancia, actualiza las cadenas `Clientes` y `Cuentas` en los archivos `appsettings.json` de las APIs.
 
@@ -84,7 +86,7 @@ La prueba unitaria valida que la entidad de dominio `Cliente` rechace una identi
 
 ## Despliegue completo con Docker
 
-El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ y ambas APIs. SQL Server conserva sus datos en un volumen de Docker e inicializa [BaseDatos.sql](database/BaseDatos.sql) de forma idempotente antes de declararse saludable.
+El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ y ambas APIs. SQL Server conserva sus datos en un volumen de Docker e inicializa [BaseDatos.sql](database/BaseDatos.sql) una sola vez antes de declararse saludable.
 
 1. Si antes iniciaste únicamente RabbitMQ, detenlo para liberar los puertos:
 

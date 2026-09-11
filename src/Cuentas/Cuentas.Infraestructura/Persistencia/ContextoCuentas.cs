@@ -1,5 +1,6 @@
 using Cuentas.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cuentas.Infraestructura.Persistencia;
 
@@ -27,6 +28,15 @@ public sealed class ContextoCuentas(DbContextOptions<ContextoCuentas> opciones) 
             entidad.Property(cuenta => cuenta.SaldoInicial).HasPrecision(18, 2).IsRequired();
             entidad.Property(cuenta => cuenta.SaldoDisponible).HasPrecision(18, 2).IsRequired();
             entidad.Property(cuenta => cuenta.Estado).IsRequired();
+            PropertyBuilder<byte[]> versionFila = entidad.Property(cuenta => cuenta.VersionFila).HasColumnName("VersionFila");
+            if (Database.IsSqlServer())
+            {
+                versionFila.IsRowVersion();
+            }
+            else
+            {
+                versionFila.IsConcurrencyToken().ValueGeneratedNever();
+            }
         });
 
         modelBuilder.Entity<Movimiento>(entidad =>

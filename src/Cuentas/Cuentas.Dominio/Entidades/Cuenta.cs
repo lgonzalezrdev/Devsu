@@ -59,6 +59,9 @@ public sealed class Cuenta
 
     public bool Estado { get; private set; } = true;
 
+    /// <summary>Controla de forma optimista que el saldo no haya cambiado durante una operación simultánea.</summary>
+    public byte[] VersionFila { get; private set; } = Guid.NewGuid().ToByteArray();
+
     /// <summary>Actualiza el tipo de cuenta sin modificar su número asignado.</summary>
     public void Actualizar(TipoCuenta tipoCuenta)
     {

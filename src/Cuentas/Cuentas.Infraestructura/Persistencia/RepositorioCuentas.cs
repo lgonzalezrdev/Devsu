@@ -1,4 +1,5 @@
 using Cuentas.Aplicacion.Contratos;
+using Cuentas.Aplicacion.Excepciones;
 using Cuentas.Dominio.Entidades;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,5 +28,15 @@ public sealed class RepositorioCuentas(ContextoCuentas contextoCuentas) : IRepos
     public Task AgregarMovimientoAsync(Movimiento movimiento, CancellationToken tokenCancelacion) =>
         contextoCuentas.Movimientos.AddAsync(movimiento, tokenCancelacion).AsTask();
 
-    public Task GuardarCambiosAsync(CancellationToken tokenCancelacion) => contextoCuentas.SaveChangesAsync(tokenCancelacion);
+    public async Task GuardarCambiosAsync(CancellationToken tokenCancelacion)
+    {
+        try
+        {
+            await contextoCuentas.SaveChangesAsync(tokenCancelacion);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictoConcurrenciaSaldoException();
+        }
+    }
 }

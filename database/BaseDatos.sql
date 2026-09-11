@@ -179,6 +179,7 @@ BEGIN
         SaldoInicial DECIMAL(18, 2) NOT NULL,
         SaldoDisponible DECIMAL(18, 2) NOT NULL,
         Estado BIT NOT NULL CONSTRAINT DF_Cuentas_Estado DEFAULT 1,
+        VersionFila ROWVERSION NOT NULL,
         CONSTRAINT PK_Cuentas PRIMARY KEY (CuentaId),
         CONSTRAINT UQ_Cuentas_NumeroCuenta UNIQUE (NumeroCuenta),
         CONSTRAINT CK_Cuentas_NumeroCuenta CHECK (LEN(NumeroCuenta) = 6 AND NumeroCuenta NOT LIKE '%[^0-9]%'),
