@@ -132,6 +132,26 @@ public sealed class CuentasApiPruebas : IClassFixture<FabricaCuentasPruebas>
         Assert.Equal(50, cuentaActualizada.SaldoDisponible);
     }
 
+    [Fact]
+    public async Task ListadoPaginadoFiltraCuentasYMovimientosPorFecha()
+    {
+        CuentaRespuesta cuenta = await CrearCuentaActivaAsync(100);
+        CrearMovimientoSolicitud deposito = new() { CuentaId = cuenta.CuentaId, TipoMovimiento = TipoMovimiento.Deposito, Valor = 20 };
+        await clienteHttp.PostAsJsonAsync("/api/movimientos", deposito, OpcionesSerializacion);
+
+        HttpResponseMessage respuestaCuentas = await clienteHttp.GetAsync($"/api/cuentas?pagina=1&tamanoPagina=1&clienteId={FabricaCuentasPruebas.ClienteActivoId}&estado=true");
+        HttpResponseMessage respuestaMovimientos = await clienteHttp.GetAsync($"/api/movimientos?cuentaId={cuenta.CuentaId}&pagina=1&tamanoPagina=1&fechaInicio=2000-01-01&fechaFin=2100-01-01");
+        using JsonDocument cuentasJson = JsonDocument.Parse(await respuestaCuentas.Content.ReadAsStringAsync());
+        using JsonDocument movimientosJson = JsonDocument.Parse(await respuestaMovimientos.Content.ReadAsStringAsync());
+
+        Assert.Equal(HttpStatusCode.OK, respuestaCuentas.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, respuestaMovimientos.StatusCode);
+        Assert.Equal(1, cuentasJson.RootElement.GetProperty("tamanoPagina").GetInt32());
+        Assert.True(cuentasJson.RootElement.GetProperty("totalRegistros").GetInt32() >= 1);
+        Assert.Equal(1, movimientosJson.RootElement.GetProperty("totalRegistros").GetInt32());
+        Assert.Single(movimientosJson.RootElement.GetProperty("elementos").EnumerateArray());
+    }
+
     private async Task<CuentaRespuesta> CrearCuentaActivaAsync(decimal saldoInicial)
     {
         CrearCuentaSolicitud solicitud = new()

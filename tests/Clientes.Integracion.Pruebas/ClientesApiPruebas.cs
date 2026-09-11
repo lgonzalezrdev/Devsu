@@ -128,6 +128,24 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
     }
 
     [Fact]
+    public async Task ListadoPaginadoFiltraClientesPorNombreYEstado()
+    {
+        await CrearClienteParaReporteAsync("9012345678", "Filtro Activo");
+        ClienteRespuesta clienteInactivo = await CrearClienteParaReporteAsync("0123456789", "Filtro Inactivo");
+        await clienteHttp.DeleteAsync($"/api/clientes/{clienteInactivo.ClienteId}");
+
+        HttpResponseMessage respuesta = await clienteHttp.GetAsync("/api/clientes?pagina=1&tamanoPagina=1&nombre=Filtro&estado=true");
+        using JsonDocument documento = JsonDocument.Parse(await respuesta.Content.ReadAsStringAsync());
+        JsonElement raiz = documento.RootElement;
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Equal(1, raiz.GetProperty("pagina").GetInt32());
+        Assert.Equal(1, raiz.GetProperty("tamanoPagina").GetInt32());
+        Assert.Equal(1, raiz.GetProperty("totalRegistros").GetInt32());
+        Assert.Single(raiz.GetProperty("elementos").EnumerateArray());
+    }
+
+    [Fact]
     public async Task ActualizarClienteConDatosValidosPersisteCambios()
     {
         CrearClienteSolicitud solicitudCreacion = CrearSolicitud("6789012345", "Maria Inicial");

@@ -20,5 +20,7 @@
     <Project Path="tests/Clientes.Dominio.Pruebas/Clientes.Dominio.Pruebas.csproj" />
     <Project Path="tests/Clientes.Integracion.Pruebas/Clientes.Integracion.Pruebas.csproj" />
     <Project Path="tests/Cuentas.Integracion.Pruebas/Cuentas.Integracion.Pruebas.csproj" />
+    <Project Path="tests/Cuentas.Dominio.Pruebas/Cuentas.Dominio.Pruebas.csproj" />
+    <Project Path="tests/Contratos.Compartidos.Pruebas/Contratos.Compartidos.Pruebas.csproj" />
   </Folder>
 </Solution>

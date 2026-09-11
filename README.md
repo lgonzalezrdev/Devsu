@@ -50,7 +50,7 @@ También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Serve
 
 ## Comunicación asíncrona: Clientes → Cuentas
 
-El microservicio Clientes publica los eventos `ClienteSincronizado` y `ClienteEliminado`. Cuentas los consume mediante RabbitMQ y conserva únicamente una proyección local (`cuentas.ClientesIntegracion`) con identificador, nombre, estado y fecha de actualización. Por tanto, Cuentas no consulta la base de datos de Clientes ni usa comunicación HTTP síncrona para crear una cuenta.
+El microservicio Clientes publica el evento `ClienteSincronizado` para altas, modificaciones, cambios de estado y bajas lógicas. Cuentas lo consume mediante RabbitMQ y conserva únicamente una proyección local (`cuentas.ClientesIntegracion`) con identificador, nombre, estado y fecha de actualización. Por tanto, Cuentas no consulta la base de datos de Clientes ni usa comunicación HTTP síncrona para crear una cuenta. Cuando recibe un cliente inactivo, conserva sus cuentas y movimientos existentes, pero impide nuevas aperturas.
 
 Para probarla localmente, inicia RabbitMQ:
 
