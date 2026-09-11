@@ -16,6 +16,9 @@
 # Variables locales de despliegue
 .env
 
+# Scripts incrementales usados únicamente durante el desarrollo local
+database/actualizaciones/
+
 # Mono auto generated files
 mono_crash.*
 

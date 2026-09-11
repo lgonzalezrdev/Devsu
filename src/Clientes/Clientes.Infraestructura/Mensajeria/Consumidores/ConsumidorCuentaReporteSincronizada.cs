@@ -1,15 +1,19 @@
 using Clientes.Aplicacion.Contratos;
 using Clientes.Dominio.Entidades;
+using Clientes.Infraestructura.Persistencia;
 using Contratos.Compartidos.Eventos;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clientes.Infraestructura.Mensajeria.Consumidores;
 
-public sealed class ConsumidorCuentaReporteSincronizada(IRepositorioReportes repositorioReportes) : IConsumer<CuentaReporteSincronizada>
+public sealed class ConsumidorCuentaReporteSincronizada(IRepositorioReportes repositorioReportes, ContextoClientes contextoClientes) : IConsumer<CuentaReporteSincronizada>
 {
     public async Task Consume(ConsumeContext<CuentaReporteSincronizada> context)
     {
         CuentaReporteSincronizada eventoIntegracion = context.Message;
+        bool yaRecibido = await contextoClientes.EventosIntegracionRecibidos.AnyAsync(evento => evento.EventoId == eventoIntegracion.EventoId, context.CancellationToken);
+        if (yaRecibido) { return; }
         CuentaReporte? cuenta = await repositorioReportes.ObtenerCuentaPorIdAsync(eventoIntegracion.CuentaId, context.CancellationToken);
         bool eventoAplicable = true;
 
@@ -65,6 +69,7 @@ public sealed class ConsumidorCuentaReporteSincronizada(IRepositorioReportes rep
             }
         }
 
+        contextoClientes.EventosIntegracionRecibidos.Add(new EventoIntegracionRecibido(eventoIntegracion.EventoId, nameof(CuentaReporteSincronizada)));
         await repositorioReportes.GuardarCambiosAsync(context.CancellationToken);
     }
 }

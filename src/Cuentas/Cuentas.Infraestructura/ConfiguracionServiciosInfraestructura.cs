@@ -56,6 +56,7 @@ public static class ConfiguracionServiciosInfraestructura
                 });
             });
             servicios.AddScoped<IPublicadorEventosIntegracion, PublicadorEventosMassTransit>();
+            servicios.AddHostedService<ProcesadorEventosIntegracion>();
         }
         else
         {

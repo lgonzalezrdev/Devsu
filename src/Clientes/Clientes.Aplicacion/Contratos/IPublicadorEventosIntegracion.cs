@@ -1,9 +1,9 @@
 namespace Clientes.Aplicacion.Contratos;
 
-/// <summary>Publica eventos de integración sin acoplar la aplicación al transporte usado.</summary>
+/// <summary>Registra eventos de integración en una cola transaccional sin acoplar la aplicación al transporte.</summary>
 public interface IPublicadorEventosIntegracion
 {
-    /// <summary>Publica un evento para que sea procesado por otros microservicios.</summary>
-    Task PublicarAsync<TEvento>(TEvento eventoIntegracion, CancellationToken tokenCancelacion)
+    /// <summary>Deja un evento pendiente para que el proceso de salida lo publique de forma confiable.</summary>
+    Task RegistrarAsync<TEvento>(TEvento eventoIntegracion, CancellationToken tokenCancelacion)
         where TEvento : class;
 }

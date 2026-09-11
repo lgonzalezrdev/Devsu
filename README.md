@@ -9,6 +9,8 @@ Solución base para la prueba técnica, desarrollada con .NET 10 y Clean Archite
 
 Cada servicio conserva su propia base de datos y se integra asíncronamente mediante eventos de RabbitMQ.
 
+La comunicación utiliza el patrón Outbox/Inbox: la modificación del dominio y el evento pendiente se guardan en la misma transacción; un proceso en segundo plano publica los pendientes. Cada consumidor registra el identificador del evento antes de confirmar su efecto, por lo que una reentrega no duplica proyecciones ni movimientos.
+
 ## Inyección de dependencias
 
 La configuración de dependencias se concentra en métodos de extensión por capa:
@@ -32,9 +34,7 @@ postman/         # Colección de validación
 
 ## Base de datos local
 
-La solución usa SQL Server LocalDB por defecto. Ejecuta el script `BaseDatos.sql` desde SQL Server Management Studio para crear el esquema inicial. No se usan migraciones ni creación automática del esquema: cualquier cambio futuro de base de datos se entregará como un script SQL incremental y también se incorporará a `BaseDatos.sql`.
-
-Si ya creaste las bases antes de las validaciones de Clientes, ejecuta también [001_validaciones_clientes.sql](database/actualizaciones/001_validaciones_clientes.sql).
+La solución usa SQL Server LocalDB por defecto. Ejecuta [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio para crear el esquema completo. No se usan migraciones ni creación automática del esquema; el archivo contiene todas las tablas, restricciones y proyecciones requeridas.
 
 También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Server Management Studio. Si usas otra instancia, actualiza las cadenas `Clientes` y `Cuentas` en los archivos `appsettings.json` de las APIs.
 
@@ -42,7 +42,7 @@ También puedes ejecutar [BaseDatos.sql](database/BaseDatos.sql) desde SQL Serve
 
 El microservicio Clientes publica los eventos `ClienteSincronizado` y `ClienteEliminado`. Cuentas los consume mediante RabbitMQ y conserva únicamente una proyección local (`cuentas.ClientesIntegracion`) con identificador, nombre, estado y fecha de actualización. Por tanto, Cuentas no consulta la base de datos de Clientes ni usa comunicación HTTP síncrona para crear una cuenta.
 
-Antes de activarla en una base existente, ejecuta [004_proyeccion_clientes_integracion.sql](database/actualizaciones/004_proyeccion_clientes_integracion.sql). Luego inicia RabbitMQ:
+Para probarla localmente, inicia RabbitMQ:
 
 ```powershell
 docker compose -f docker-compose.mensajeria.yml up -d
@@ -62,11 +62,11 @@ GET /api/reportes?cliente={clienteId}&fecha=yyyy-MM-dd%20HH:mm:ss,yyyy-MM-dd%20H
 
 Cuentas publica una instantánea de la cuenta y de todos sus movimientos después de cada creación o modificación. Clientes la consume en las tablas de proyección `CuentasReporte` y `MovimientosReporte`; por ello el reporte no realiza peticiones HTTP a Cuentas ni accede a `DevsuCuentas`.
 
-Para cargar cuentas existentes al activar esta funcionalidad, ejecuta `POST /api/cuentas/sincronizar` y espera unos segundos antes de consultar el reporte. Requiere haber ejecutado [005_proyeccion_reportes.sql](database/actualizaciones/005_proyeccion_reportes.sql).
+Para cargar cuentas existentes al activar esta funcionalidad, ejecuta `POST /api/cuentas/sincronizar` y espera unos segundos antes de consultar el reporte.
 
 ## Postman
 
-Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. La colección usa `https://{{servidor}}:{{puerto}}`; ajusta las variables `servidor` y `puerto` según el perfil de inicio de Visual Studio.
+Importa [Devsu.Clientes.postman_collection.json](postman/Devsu.Clientes.postman_collection.json) en Postman y ejecuta las solicitudes en el orden mostrado. Las colecciones se entregan configuradas para Docker con `http://{{servidor}}:{{puerto}}`; ajusta protocolo, `servidor` y `puerto` si las ejecutas desde Visual Studio.
 
 La colección [Devsu.Cuentas.postman_collection.json](postman/Devsu.Cuentas.postman_collection.json) valida cuentas y movimientos. Con la mensajería activa, primero crea o sincroniza el cliente y espera unos segundos antes de usar su `clienteId` para crear una cuenta.
 

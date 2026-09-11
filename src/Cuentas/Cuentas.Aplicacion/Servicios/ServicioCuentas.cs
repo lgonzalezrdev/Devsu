@@ -39,8 +39,8 @@ public sealed class ServicioCuentas(
         string numeroCuenta = await GenerarNumeroCuentaUnicoAsync(tokenCancelacion);
         Cuenta cuenta = new(Guid.NewGuid(), solicitud.ClienteId, numeroCuenta, solicitud.TipoCuenta, solicitud.SaldoInicial);
         await repositorioCuentas.AgregarCuentaAsync(cuenta, tokenCancelacion);
-        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
         await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
+        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
         return CuentaRespuesta.DesdeEntidad(cuenta);
     }
 
@@ -48,16 +48,16 @@ public sealed class ServicioCuentas(
     {
         Cuenta cuenta = await ObtenerCuentaRequeridaAsync(cuentaId, tokenCancelacion);
         cuenta.Actualizar(solicitud.TipoCuenta);
-        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
         await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
+        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
     }
 
     public async Task ActualizarEstadoCuentaAsync(Guid cuentaId, ActualizarEstadoCuentaSolicitud solicitud, CancellationToken tokenCancelacion)
     {
         Cuenta cuenta = await ObtenerCuentaRequeridaAsync(cuentaId, tokenCancelacion);
         cuenta.CambiarEstado(solicitud.Estado);
-        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
         await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
+        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
     }
 
     public async Task<IReadOnlyCollection<MovimientoRespuesta>> ObtenerMovimientosAsync(Guid cuentaId, CancellationToken tokenCancelacion)
@@ -72,8 +72,8 @@ public sealed class ServicioCuentas(
         Cuenta cuenta = await ObtenerCuentaRequeridaAsync(solicitud.CuentaId, tokenCancelacion);
         Movimiento movimiento = cuenta.RegistrarMovimiento(DateTime.Now, solicitud.TipoMovimiento, solicitud.Valor);
         await repositorioCuentas.AgregarMovimientoAsync(movimiento, tokenCancelacion);
+        await PublicarCuentaReporteAsync(cuenta, tokenCancelacion, movimiento);
         await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
-        await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
         return MovimientoRespuesta.DesdeEntidad(movimiento);
     }
 
@@ -85,8 +85,8 @@ public sealed class ServicioCuentas(
         movimiento.Actualizar(solicitud.TipoMovimiento, solicitud.Valor);
         IReadOnlyCollection<Movimiento> movimientos = await repositorioCuentas.ObtenerMovimientosAsync(cuenta.CuentaId, tokenCancelacion);
         cuenta.RecalcularSaldos(movimientos);
-        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
         await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
+        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
     }
 
     public async Task SincronizarTodosAsync(CancellationToken tokenCancelacion)
@@ -97,6 +97,7 @@ public sealed class ServicioCuentas(
         {
             await PublicarCuentaReporteAsync(cuenta, tokenCancelacion);
         }
+        await repositorioCuentas.GuardarCambiosAsync(tokenCancelacion);
     }
 
     private async Task<Cuenta> ObtenerCuentaRequeridaAsync(Guid cuentaId, CancellationToken tokenCancelacion) =>
@@ -121,10 +122,13 @@ public sealed class ServicioCuentas(
         throw new ExcepcionReglaDominioException("No fue posible generar un número de cuenta único. Intente nuevamente.");
     }
 
-    private async Task PublicarCuentaReporteAsync(Cuenta cuenta, CancellationToken tokenCancelacion)
+    private async Task PublicarCuentaReporteAsync(Cuenta cuenta, CancellationToken tokenCancelacion, Movimiento? movimientoPendiente = null)
     {
         IReadOnlyCollection<Movimiento> movimientos = await repositorioCuentas.ObtenerMovimientosAsync(cuenta.CuentaId, tokenCancelacion);
-        IReadOnlyCollection<MovimientoReporteSincronizado> movimientosIntegracion = movimientos
+        IReadOnlyCollection<Movimiento> movimientosCompletos = movimientoPendiente is null || movimientos.Any(movimiento => movimiento.MovimientoId == movimientoPendiente.MovimientoId)
+            ? movimientos
+            : movimientos.Append(movimientoPendiente).ToArray();
+        IReadOnlyCollection<MovimientoReporteSincronizado> movimientosIntegracion = movimientosCompletos
             .Select(movimiento => new MovimientoReporteSincronizado(
                 movimiento.MovimientoId,
                 movimiento.Fecha,
@@ -133,6 +137,7 @@ public sealed class ServicioCuentas(
                 movimiento.Saldo))
             .ToArray();
         CuentaReporteSincronizada eventoIntegracion = new(
+            Guid.NewGuid(),
             cuenta.CuentaId,
             cuenta.ClienteId,
             cuenta.NumeroCuenta,
@@ -142,6 +147,6 @@ public sealed class ServicioCuentas(
             cuenta.Estado,
             DateTime.UtcNow,
             movimientosIntegracion);
-        await publicadorEventos.PublicarAsync(eventoIntegracion, tokenCancelacion);
+        await publicadorEventos.RegistrarAsync(eventoIntegracion, tokenCancelacion);
     }
 }

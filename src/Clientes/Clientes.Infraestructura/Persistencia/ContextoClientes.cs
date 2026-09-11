@@ -10,6 +10,8 @@ public sealed class ContextoClientes(DbContextOptions<ContextoClientes> opciones
     public DbSet<CuentaReporte> CuentasReporte => Set<CuentaReporte>();
 
     public DbSet<MovimientoReporte> MovimientosReporte => Set<MovimientoReporte>();
+    public DbSet<EventoIntegracion> EventosIntegracion => Set<EventoIntegracion>();
+    public DbSet<EventoIntegracionRecibido> EventosIntegracionRecibidos => Set<EventoIntegracionRecibido>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,5 +67,13 @@ public sealed class ContextoClientes(DbContextOptions<ContextoClientes> opciones
                 .HasForeignKey(movimiento => movimiento.CuentaId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        ConfigurarEventosIntegracion(modelBuilder, "clientes");
+    }
+
+    private static void ConfigurarEventosIntegracion(ModelBuilder modelBuilder, string esquema)
+    {
+        modelBuilder.Entity<EventoIntegracion>(entidad => { entidad.ToTable("EventosIntegracion", esquema); entidad.HasKey(evento => evento.EventoId); entidad.Property(evento => evento.Tipo).HasMaxLength(300).IsRequired(); entidad.Property(evento => evento.Contenido).IsRequired(); entidad.Property(evento => evento.OcurridoEn).HasColumnType("datetime2(0)"); entidad.Property(evento => evento.ProcesadoEn).HasColumnType("datetime2(0)"); entidad.Property(evento => evento.Error).HasMaxLength(2000); });
+        modelBuilder.Entity<EventoIntegracionRecibido>(entidad => { entidad.ToTable("EventosIntegracionRecibidos", esquema); entidad.HasKey(evento => evento.EventoId); entidad.Property(evento => evento.Tipo).HasMaxLength(300).IsRequired(); entidad.Property(evento => evento.RecibidoEn).HasColumnType("datetime2(0)"); });
     }
 }

@@ -2,6 +2,7 @@ namespace Contratos.Compartidos.Eventos;
 
 /// <summary>Transfiere una instantánea de cuenta y movimientos para el reporte distribuido.</summary>
 public sealed record CuentaReporteSincronizada(
+    Guid EventoId,
     Guid CuentaId,
     Guid ClienteId,
     string NumeroCuenta,

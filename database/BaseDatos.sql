@@ -105,12 +105,66 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'clientes.EventosIntegracion', N'U') IS NULL
+BEGIN
+    CREATE TABLE clientes.EventosIntegracion
+    (
+        EventoId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        Tipo NVARCHAR(300) NOT NULL,
+        Contenido NVARCHAR(MAX) NOT NULL,
+        OcurridoEn DATETIME2(0) NOT NULL,
+        ProcesadoEn DATETIME2(0) NULL,
+        Intentos INT NOT NULL CONSTRAINT DF_EventosClientes_Intentos DEFAULT 0,
+        Error NVARCHAR(2000) NULL
+    );
+    CREATE INDEX IX_EventosClientes_Pendientes ON clientes.EventosIntegracion(ProcesadoEn, OcurridoEn);
+END;
+GO
+
+IF OBJECT_ID(N'clientes.EventosIntegracionRecibidos', N'U') IS NULL
+BEGIN
+    CREATE TABLE clientes.EventosIntegracionRecibidos
+    (
+        EventoId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        Tipo NVARCHAR(300) NOT NULL,
+        RecibidoEn DATETIME2(0) NOT NULL
+    );
+END;
+GO
+
 USE DevsuCuentas;
 GO
 
 IF SCHEMA_ID(N'cuentas') IS NULL
 BEGIN
     EXEC(N'CREATE SCHEMA cuentas');
+END;
+GO
+
+IF OBJECT_ID(N'cuentas.EventosIntegracion', N'U') IS NULL
+BEGIN
+    CREATE TABLE cuentas.EventosIntegracion
+    (
+        EventoId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        Tipo NVARCHAR(300) NOT NULL,
+        Contenido NVARCHAR(MAX) NOT NULL,
+        OcurridoEn DATETIME2(0) NOT NULL,
+        ProcesadoEn DATETIME2(0) NULL,
+        Intentos INT NOT NULL CONSTRAINT DF_EventosCuentas_Intentos DEFAULT 0,
+        Error NVARCHAR(2000) NULL
+    );
+    CREATE INDEX IX_EventosCuentas_Pendientes ON cuentas.EventosIntegracion(ProcesadoEn, OcurridoEn);
+END;
+GO
+
+IF OBJECT_ID(N'cuentas.EventosIntegracionRecibidos', N'U') IS NULL
+BEGIN
+    CREATE TABLE cuentas.EventosIntegracionRecibidos
+    (
+        EventoId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+        Tipo NVARCHAR(300) NOT NULL,
+        RecibidoEn DATETIME2(0) NOT NULL
+    );
 END;
 GO
 
