@@ -84,6 +84,15 @@ dotnet test Devsu.Microservicios.slnx --configuration Release
 
 La prueba unitaria valida que la entidad de dominio `Cliente` rechace una identificación inválida. Las pruebas de integración usan `WebApplicationFactory` y SQLite en memoria, por lo que no dependen ni alteran SQL Server LocalDB. Cubren creación y actualización de cliente, identificación duplicada, género inválido, cliente inexistente o inactivo al crear una cuenta, saldo inicial negativo y retiro sin saldo disponible.
 
+## Health checks
+
+Cada API expone dos comprobaciones de salud en JSON:
+
+- `GET /vivo`: liveness. Solo verifica que el proceso web esté ejecutándose; es apropiado para detectar una API detenida o bloqueada.
+- `GET /salud`: readiness. Comprueba una conexión real a SQL Server y una conexión TCP a RabbitMQ. Devuelve HTTP 200 solo si las dependencias requeridas están disponibles; ante un fallo devuelve HTTP 503 con el nombre y detalle de la dependencia afectada.
+
+Cuando `Mensajeria:Activa` es `false`, RabbitMQ aparece sano con el detalle de que está desactivado, permitiendo ejecutar las APIs locales sin el broker. Cuando está activa, la verificación intenta conectar al host y puerto configurados. MassTransit conserva además su propia conexión con RabbitMQ para publicar y consumir eventos.
+
 ## Despliegue completo con Docker
 
 El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ y ambas APIs. SQL Server conserva sus datos en un volumen de Docker e inicializa [BaseDatos.sql](database/BaseDatos.sql) una sola vez antes de declararse saludable.
