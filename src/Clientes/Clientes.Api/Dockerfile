@@ -6,6 +6,7 @@ COPY ["src/Clientes/Clientes.Aplicacion/Clientes.Aplicacion.csproj", "src/Client
 COPY ["src/Clientes/Clientes.Dominio/Clientes.Dominio.csproj", "src/Clientes/Clientes.Dominio/"]
 COPY ["src/Clientes/Clientes.Infraestructura/Clientes.Infraestructura.csproj", "src/Clientes/Clientes.Infraestructura/"]
 COPY ["src/Construccion/Contratos.Compartidos/Contratos.Compartidos.csproj", "src/Construccion/Contratos.Compartidos/"]
+COPY ["src/Construccion/Observabilidad.Compartida/Observabilidad.Compartida.csproj", "src/Construccion/Observabilidad.Compartida/"]
 RUN dotnet restore "src/Clientes/Clientes.Api/Clientes.Api.csproj"
 
 COPY . .

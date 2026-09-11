@@ -1,24 +1,65 @@
 {
   "info": {
-    "_postman_id": "6139065d-7c38-45aa-83bb-02f6408d1cc1",
+    "_postman_id": "7a52e2f5-8300-4386-a224-af0db9a899c8",
     "name": "Devsu - Reportes",
     "description": "Ejecuta la sincronización de Cuentas antes de consultar el reporte.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "variable": [
-    { "key": "servidor", "value": "localhost", "type": "string" },
-    { "key": "puerto", "value": "7176", "type": "string" },
-    { "key": "clienteId", "value": "REEMPLAZAR-POR-CLIENTE-ID", "type": "string" }
-  ],
   "item": [
     {
       "name": "Estado de cuenta",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna cuentas', () => pm.expect(pm.response.json().cuentas).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": "https://{{servidor}}:{{puerto}}/api/reportes?fecha=2020-01-01%2000:00:00,2030-12-31%2023:59:59&cliente={{clienteId}}"
+        "url": {
+          "raw": "http://{{servidor}}:{{puerto}}/api/reportes?fecha=2020-01-01%2000:00:00,2030-12-31%2023:59:59&cliente={{clienteId}}",
+          "protocol": "http",
+          "host": [
+            "{{servidor}}"
+          ],
+          "port": "{{puerto}}",
+          "path": [
+            "api",
+            "reportes"
+          ],
+          "query": [
+            {
+              "key": "fecha",
+              "value": "2020-01-01%2000:00:00,2030-12-31%2023:59:59"
+            },
+            {
+              "key": "cliente",
+              "value": "{{clienteId}}"
+            }
+          ]
+        }
       },
-      "event": [{ "listen": "test", "script": { "exec": ["pm.test('Responde 200', () => pm.response.to.have.status(200));", "pm.test('Retorna cuentas', () => pm.expect(pm.response.json().cuentas).to.be.an('array'));"], "type": "text/javascript" } }]
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "servidor",
+      "value": "localhost"
+    },
+    {
+      "key": "puerto",
+      "value": "8081"
+    },
+    {
+      "key": "clienteId",
+      "value": "REEMPLAZAR-POR-CLIENTE-ID"
     }
   ]
 }

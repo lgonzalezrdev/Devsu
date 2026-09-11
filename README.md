@@ -84,7 +84,7 @@ La prueba unitaria valida que la entidad de dominio `Cliente` rechace una identi
 
 ## Despliegue completo con Docker
 
-El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ, el inicializador de base de datos y ambas APIs. SQL Server conserva sus datos en un volumen de Docker; el inicializador ejecuta [BaseDatos.sql](database/BaseDatos.sql) de forma idempotente en cada inicio.
+El archivo [docker-compose.yml](docker-compose.yml) levanta SQL Server, RabbitMQ y ambas APIs. SQL Server conserva sus datos en un volumen de Docker e inicializa [BaseDatos.sql](database/BaseDatos.sql) de forma idempotente antes de declararse saludable.
 
 1. Si antes iniciaste únicamente RabbitMQ, detenlo para liberar los puertos:
 
@@ -122,7 +122,7 @@ El perfil Docker expone HTTP para no almacenar certificados de desarrollo en el 
 Para diagnosticar un servicio, consulta sus registros, por ejemplo:
 
 ```powershell
-docker compose logs inicializador-bd
+docker compose logs sqlserver
 docker compose logs cuentas-api
 ```
 

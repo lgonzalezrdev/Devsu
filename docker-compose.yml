@@ -2,7 +2,9 @@ name: devsu
 
 services:
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    build:
+      context: .
+      dockerfile: database/Dockerfile
     container_name: devsu-sqlserver
     environment:
       ACCEPT_EULA: "Y"
@@ -13,25 +15,11 @@ services:
     volumes:
       - datos-sqlserver:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "test -f /tmp/base-datos-lista && /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 15
       start_period: 20s
-
-  inicializador-bd:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: devsu-inicializador-bd
-    environment:
-      MSSQL_SA_PASSWORD: ${SQL_SERVER_SA_PASSWORD:?Define SQL_SERVER_SA_PASSWORD en el archivo .env}
-    volumes:
-      - ./database/BaseDatos.sql:/scripts/BaseDatos.sql:ro
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-    entrypoint: ["/bin/bash", "-c"]
-    command: "/opt/mssql-tools18/bin/sqlcmd -C -S sqlserver -U sa -P \"$$MSSQL_SA_PASSWORD\" -i /scripts/BaseDatos.sql"
-    restart: "no"
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -66,8 +54,8 @@ services:
     ports:
       - "8082:8080"
     depends_on:
-      inicializador-bd:
-        condition: service_completed_successfully
+      sqlserver:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
@@ -91,8 +79,8 @@ services:
     depends_on:
       cuentas-api:
         condition: service_started
-      inicializador-bd:
-        condition: service_completed_successfully
+      sqlserver:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
