@@ -73,8 +73,8 @@ public sealed class ServicioClientes(
     public async Task EliminarAsync(Guid clienteId, CancellationToken tokenCancelacion)
     {
         Cliente cliente = await ObtenerClienteRequeridoAsync(clienteId, tokenCancelacion);
-        repositorioClientes.Eliminar(cliente);
-        await publicadorEventos.RegistrarAsync(new ClienteEliminado(Guid.NewGuid(), cliente.ClienteId, DateTime.UtcNow), tokenCancelacion);
+        cliente.CambiarEstado(false);
+        await PublicarClienteSincronizadoAsync(cliente, tokenCancelacion);
         await repositorioClientes.GuardarCambiosAsync(tokenCancelacion);
     }
 

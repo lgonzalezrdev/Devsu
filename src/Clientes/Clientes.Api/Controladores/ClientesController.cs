@@ -59,6 +59,7 @@ public sealed class ClientesController(IServicioClientes servicioClientes) : Con
     [HttpDelete("{clienteId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Eliminar(Guid clienteId, CancellationToken tokenCancelacion)
     {
         await servicioClientes.EliminarAsync(clienteId, tokenCancelacion);

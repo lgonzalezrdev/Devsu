@@ -9,6 +9,8 @@ Solución base para la prueba técnica, desarrollada con .NET 10 y Clean Archite
 
 Cada servicio conserva su propia base de datos y se integra asíncronamente mediante eventos de RabbitMQ.
 
+Los clientes no se eliminan físicamente. `DELETE /api/clientes/{clienteId}` realiza una baja lógica: marca el cliente como inactivo y publica esa condición hacia Cuentas. Sus cuentas, movimientos y reportes se conservan para auditoría; no se pueden crear cuentas nuevas para un cliente inactivo.
+
 La comunicación utiliza el patrón Outbox/Inbox: la modificación del dominio y el evento pendiente se guardan en la misma transacción; un proceso en segundo plano publica los pendientes. Cada consumidor registra el identificador del evento antes de confirmar su efecto, por lo que una reentrega no duplica proyecciones ni movimientos.
 
 ## Inyección de dependencias

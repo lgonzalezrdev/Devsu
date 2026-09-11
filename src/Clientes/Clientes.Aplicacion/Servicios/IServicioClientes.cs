@@ -19,7 +19,7 @@ public interface IServicioClientes
     /// <summary>Cambia únicamente el estado activo del cliente.</summary>
     Task ActualizarEstadoAsync(Guid clienteId, ActualizarEstadoClienteSolicitud solicitud, CancellationToken tokenCancelacion);
 
-    /// <summary>Elimina un cliente existente.</summary>
+    /// <summary>Da de baja lógica a un cliente, conservando su trazabilidad financiera.</summary>
     Task EliminarAsync(Guid clienteId, CancellationToken tokenCancelacion);
 
     /// <summary>Republica todos los clientes para reconstruir proyecciones de otros servicios.</summary>

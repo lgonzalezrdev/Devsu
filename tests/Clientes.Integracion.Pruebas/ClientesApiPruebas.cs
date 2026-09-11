@@ -146,6 +146,21 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
         Assert.Equal(34, clienteActualizado.Edad);
     }
 
+    [Fact]
+    public async Task EliminarClienteRealizaBajaLogicaYConservaElRegistro()
+    {
+        ClienteRespuesta cliente = await CrearClienteParaReporteAsync("8901234567", "Cliente Baja Logica");
+
+        HttpResponseMessage respuestaEliminar = await clienteHttp.DeleteAsync($"/api/clientes/{cliente.ClienteId}");
+        HttpResponseMessage respuestaConsulta = await clienteHttp.GetAsync($"/api/clientes/{cliente.ClienteId}");
+        ClienteRespuesta? clienteInactivo = await respuestaConsulta.Content.ReadFromJsonAsync<ClienteRespuesta>(OpcionesSerializacion);
+
+        Assert.Equal(HttpStatusCode.NoContent, respuestaEliminar.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, respuestaConsulta.StatusCode);
+        Assert.NotNull(clienteInactivo);
+        Assert.False(clienteInactivo.Estado);
+    }
+
     private static CrearClienteSolicitud CrearSolicitud(string identificacion, string nombre) => new()
     {
         Nombre = nombre,
