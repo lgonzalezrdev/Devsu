@@ -102,6 +102,19 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
     }
 
     [Fact]
+    public async Task JSONMalformadoRetornaErrorEnEspanol()
+    {
+        StringContent contenido = new("{\"nombre\":", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage respuesta = await clienteHttp.PostAsync("/api/clientes", contenido);
+        string detalle = await respuesta.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        Assert.DoesNotContain("The JSON", detalle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("The request", detalle, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task ActualizarClienteConDatosValidosPersisteCambios()
     {
         CrearClienteSolicitud solicitudCreacion = CrearSolicitud("6789012345", "Maria Inicial");

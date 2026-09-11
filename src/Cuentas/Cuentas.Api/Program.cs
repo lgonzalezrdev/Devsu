@@ -5,6 +5,7 @@ using Cuentas.Infraestructura;
 using Cuentas.Dominio.Enumeraciones;
 using Cuentas.Infraestructura.Salud;
 using Observabilidad.Compartida.Salud;
+using Observabilidad.Compartida.Validacion;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
@@ -14,39 +15,14 @@ WebApplicationBuilder constructor = WebApplication.CreateBuilder(args);
 
 constructor.Logging.ClearProviders();
 constructor.Logging.AddConsole();
-constructor.Services.AddControllers().AddJsonOptions(opcionesJson =>
+constructor.Services.AddControllers(opciones => ConfiguracionValidacionesApi.ConfigurarMensajesModelBinding(opciones)).AddJsonOptions(opcionesJson =>
 {
     opcionesJson.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<TipoCuenta>(allowIntegerValues: false));
     opcionesJson.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<TipoMovimiento>(allowIntegerValues: false));
     opcionesJson.JsonSerializerOptions.Converters.Add(new ConvertidorFechaHora());
 });
 constructor.Services.Configure<ApiBehaviorOptions>(opciones =>
-{
-    opciones.InvalidModelStateResponseFactory = contextoAccion =>
-    {
-        if (contextoAccion.ModelState.ContainsKey("$.clienteId"))
-        {
-            ProblemDetails problema = new()
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Identificador de cliente inválido",
-                Detail = "El campo clienteId debe tener un GUID válido.",
-                Extensions = { ["idTrazabilidad"] = contextoAccion.HttpContext.TraceIdentifier }
-            };
-
-            return new BadRequestObjectResult(problema);
-        }
-
-        ValidationProblemDetails problemaValidacion = new(contextoAccion.ModelState)
-        {
-            Status = StatusCodes.Status400BadRequest,
-            Title = "Los datos de la solicitud no son válidos.",
-            Extensions = { ["idTrazabilidad"] = contextoAccion.HttpContext.TraceIdentifier }
-        };
-
-        return new BadRequestObjectResult(problemaValidacion);
-    };
-});
+    opciones.InvalidModelStateResponseFactory = ConfiguracionValidacionesApi.CrearRespuestaError);
 IHealthChecksBuilder comprobacionesSalud = constructor.Services.AddHealthChecks();
 comprobacionesSalud.AddCheck("api", () => HealthCheckResult.Healthy("La API de Cuentas está en ejecución."), tags: ["vivo"]);
 comprobacionesSalud.AddCheck<ComprobacionSqlServer>("sqlserver", tags: ["listo"]);

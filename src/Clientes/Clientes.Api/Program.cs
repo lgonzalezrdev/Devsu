@@ -5,6 +5,8 @@ using Clientes.Infraestructura;
 using Clientes.Dominio.Enumeraciones;
 using Clientes.Infraestructura.Salud;
 using Observabilidad.Compartida.Salud;
+using Observabilidad.Compartida.Validacion;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json.Serialization;
@@ -13,8 +15,10 @@ WebApplicationBuilder constructor = WebApplication.CreateBuilder(args);
 
 constructor.Logging.ClearProviders();
 constructor.Logging.AddConsole();
-constructor.Services.AddControllers().AddJsonOptions(opciones =>
+constructor.Services.AddControllers(opciones => ConfiguracionValidacionesApi.ConfigurarMensajesModelBinding(opciones)).AddJsonOptions(opciones =>
     opciones.JsonSerializerOptions.Converters.Add(new ConvertidorGenero()));
+constructor.Services.Configure<ApiBehaviorOptions>(opciones =>
+    opciones.InvalidModelStateResponseFactory = ConfiguracionValidacionesApi.CrearRespuestaError);
 IHealthChecksBuilder comprobacionesSalud = constructor.Services.AddHealthChecks();
 comprobacionesSalud.AddCheck("api", () => HealthCheckResult.Healthy("La API de Clientes está en ejecución."), tags: ["vivo"]);
 comprobacionesSalud.AddCheck<ComprobacionSqlServer>("sqlserver", tags: ["listo"]);

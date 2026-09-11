@@ -72,6 +72,19 @@ public sealed class CuentasApiPruebas : IClassFixture<FabricaCuentasPruebas>
     }
 
     [Fact]
+    public async Task JSONMalformadoRetornaErrorEnEspanol()
+    {
+        StringContent contenido = new("{\"clienteId\":", System.Text.Encoding.UTF8, "application/json");
+
+        HttpResponseMessage respuesta = await clienteHttp.PostAsync("/api/cuentas", contenido);
+        string detalle = await respuesta.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        Assert.DoesNotContain("The JSON", detalle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("The request", detalle, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task RegistrarRetiroSinSaldoRetornaSaldoNoDisponible()
     {
         CuentaRespuesta cuenta = await CrearCuentaActivaAsync(50);
