@@ -115,6 +115,19 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
     }
 
     [Fact]
+    public async Task SolicitudConCorrelacionDevuelveElMismoIdentificador()
+    {
+        const string idCorrelacion = "prueba-trazabilidad-001";
+        HttpRequestMessage solicitud = new(HttpMethod.Get, "/salud");
+        solicitud.Headers.Add("X-Correlation-Id", idCorrelacion);
+
+        HttpResponseMessage respuesta = await clienteHttp.SendAsync(solicitud);
+
+        Assert.True(respuesta.Headers.TryGetValues("X-Correlation-Id", out IEnumerable<string>? valores));
+        Assert.Equal(idCorrelacion, Assert.Single(valores));
+    }
+
+    [Fact]
     public async Task ActualizarClienteConDatosValidosPersisteCambios()
     {
         CrearClienteSolicitud solicitudCreacion = CrearSolicitud("6789012345", "Maria Inicial");

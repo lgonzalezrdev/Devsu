@@ -11,7 +11,8 @@ public sealed record CuentaReporteSincronizada(
     decimal SaldoDisponible,
     bool Estado,
     DateTime FechaOcurrencia,
-    IReadOnlyCollection<MovimientoReporteSincronizado> Movimientos);
+    IReadOnlyCollection<MovimientoReporteSincronizado> Movimientos,
+    string IdCorrelacion);
 
 /// <summary>Representa un movimiento dentro de la instantánea de una cuenta.</summary>
 public sealed record MovimientoReporteSincronizado(

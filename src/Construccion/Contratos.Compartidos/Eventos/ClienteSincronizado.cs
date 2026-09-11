@@ -6,4 +6,5 @@ public sealed record ClienteSincronizado(
     Guid ClienteId,
     string Nombre,
     bool Estado,
-    DateTime FechaOcurrencia);
+    DateTime FechaOcurrencia,
+    string IdCorrelacion);

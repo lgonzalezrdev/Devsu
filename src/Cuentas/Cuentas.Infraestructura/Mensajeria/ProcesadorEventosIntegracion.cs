@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Observabilidad.Compartida.Trazabilidad;
 using System.Text.Json;
 
 namespace Cuentas.Infraestructura.Mensajeria;
@@ -27,8 +28,17 @@ public sealed class ProcesadorEventosIntegracion(IServiceScopeFactory fabricaAlc
         List<EventoIntegracion> eventos = await contextoCuentas.EventosIntegracion.Where(evento => evento.ProcesadoEn == null).OrderBy(evento => evento.OcurridoEn).Take(20).ToListAsync(tokenCancelacion);
         foreach (EventoIntegracion evento in eventos)
         {
-            try { await publicador.Publish(JsonSerializer.Deserialize<CuentaReporteSincronizada>(evento.Contenido) ?? throw new InvalidOperationException("Evento inválido."), tokenCancelacion); evento.MarcarProcesado(); }
-            catch (Exception excepcion) { evento.RegistrarFallo(excepcion); }
+            try
+            {
+                await publicador.Publish(JsonSerializer.Deserialize<CuentaReporteSincronizada>(evento.Contenido) ?? throw new InvalidOperationException("Evento inválido."), tokenCancelacion);
+                evento.MarcarProcesado();
+                MetricasMensajeria.RegistrarPublicado(evento.Tipo);
+            }
+            catch (Exception excepcion)
+            {
+                evento.RegistrarFallo(excepcion);
+                MetricasMensajeria.RegistrarFallo(evento.Tipo);
+            }
         }
         await contextoCuentas.SaveChangesAsync(tokenCancelacion);
     }

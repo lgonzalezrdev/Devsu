@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Clientes.Aplicacion\Clientes.Aplicacion.csproj" />
     <ProjectReference Include="..\Clientes.Dominio\Clientes.Dominio.csproj" />
     <ProjectReference Include="..\..\Construccion\Contratos.Compartidos\Contratos.Compartidos.csproj" />
+    <ProjectReference Include="..\..\Construccion\Observabilidad.Compartida\Observabilidad.Compartida.csproj" />
   </ItemGroup>
 
   <ItemGroup>

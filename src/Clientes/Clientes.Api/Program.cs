@@ -6,6 +6,7 @@ using Clientes.Dominio.Enumeraciones;
 using Clientes.Infraestructura.Salud;
 using Observabilidad.Compartida.Salud;
 using Observabilidad.Compartida.Validacion;
+using Observabilidad.Compartida.Trazabilidad;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -31,6 +32,7 @@ constructor.Services.AgregarServiciosInfraestructuraClientes(constructor.Configu
 WebApplication aplicacion = constructor.Build();
 
 aplicacion.UseExceptionHandler();
+aplicacion.UseMiddleware<MiddlewareTrazabilidad>();
 
 bool redireccionHttpsActiva = constructor.Configuration.GetValue("RedireccionHttps:Activa", true);
 

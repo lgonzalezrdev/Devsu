@@ -13,6 +13,12 @@ Los clientes no se eliminan físicamente. `DELETE /api/clientes/{clienteId}` rea
 
 La comunicación utiliza el patrón Outbox/Inbox: la modificación del dominio y el evento pendiente se guardan en la misma transacción; un proceso en segundo plano publica los pendientes. Cada consumidor registra el identificador del evento antes de confirmar su efecto, por lo que una reentrega no duplica proyecciones ni movimientos.
 
+## Observabilidad
+
+Cada respuesta HTTP devuelve `X-Correlation-Id`. Puedes enviarlo en la solicitud para mantener el mismo identificador entre llamadas; de lo contrario, la API usa el identificador de trazas de ASP.NET Core. Ese valor se incorpora a los eventos de RabbitMQ, permitiendo correlacionar el log de una solicitud con sus eventos asíncronos. Los logs de la solicitud incluyen el campo estructurado `IdCorrelacion`.
+
+Las métricas .NET `devsu.solicitudes.total`, `devsu.eventos.publicados.total` y `devsu.eventos.fallidos.total` están disponibles mediante `System.Diagnostics.Metrics`, para que un recolector compatible con OpenTelemetry pueda exportarlas a Prometheus, Grafana u otra plataforma.
+
 ## Inyección de dependencias
 
 La configuración de dependencias se concentra en métodos de extensión por capa:

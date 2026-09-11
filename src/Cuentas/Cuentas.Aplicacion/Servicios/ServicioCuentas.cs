@@ -4,6 +4,7 @@ using Cuentas.Aplicacion.Modelos;
 using Cuentas.Dominio.Entidades;
 using Cuentas.Dominio.Excepciones;
 using Contratos.Compartidos.Eventos;
+using System.Diagnostics;
 
 namespace Cuentas.Aplicacion.Servicios;
 
@@ -146,7 +147,8 @@ public sealed class ServicioCuentas(
             cuenta.SaldoDisponible,
             cuenta.Estado,
             DateTime.UtcNow,
-            movimientosIntegracion);
+            movimientosIntegracion,
+            Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N"));
         await publicadorEventos.RegistrarAsync(eventoIntegracion, tokenCancelacion);
     }
 }

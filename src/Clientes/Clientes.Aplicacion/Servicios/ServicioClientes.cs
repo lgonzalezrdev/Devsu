@@ -3,6 +3,7 @@ using Clientes.Aplicacion.Excepciones;
 using Clientes.Aplicacion.Modelos;
 using Clientes.Dominio.Entidades;
 using Contratos.Compartidos.Eventos;
+using System.Diagnostics;
 
 namespace Clientes.Aplicacion.Servicios;
 
@@ -95,6 +96,8 @@ public sealed class ServicioClientes(
 
     private Task PublicarClienteSincronizadoAsync(Cliente cliente, CancellationToken tokenCancelacion) =>
         publicadorEventos.RegistrarAsync(
-            new ClienteSincronizado(Guid.NewGuid(), cliente.ClienteId, cliente.Nombre, cliente.Estado, DateTime.UtcNow),
+            new ClienteSincronizado(Guid.NewGuid(), cliente.ClienteId, cliente.Nombre, cliente.Estado, DateTime.UtcNow, ObtenerIdCorrelacion()),
             tokenCancelacion);
+
+    private static string ObtenerIdCorrelacion() => Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
 }
