@@ -1,4 +1,5 @@
 using Clientes.Dominio.Entidades;
+using Clientes.Aplicacion.Modelos;
 
 namespace Clientes.Aplicacion.Contratos;
 
@@ -6,6 +7,7 @@ public interface IRepositorioClientes
 {
     /// <summary>Obtiene todos los clientes para consulta.</summary>
     Task<IReadOnlyCollection<Cliente>> ObtenerTodosAsync(CancellationToken tokenCancelacion);
+    Task<(IReadOnlyCollection<Cliente> Clientes, int TotalRegistros)> ObtenerPaginadoAsync(ConsultaClientes consulta, CancellationToken tokenCancelacion);
 
     /// <summary>Busca un cliente por su identificador único.</summary>
     Task<Cliente?> ObtenerPorIdAsync(Guid clienteId, CancellationToken tokenCancelacion);

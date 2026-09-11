@@ -6,6 +6,7 @@ public interface IServicioCuentas
 {
     /// <summary>Obtiene las cuentas disponibles.</summary>
     Task<IReadOnlyCollection<CuentaRespuesta>> ObtenerCuentasAsync(CancellationToken tokenCancelacion);
+    Task<ResultadoPaginado<CuentaRespuesta>> ObtenerCuentasPaginadasAsync(ConsultaCuentas consulta, CancellationToken tokenCancelacion);
     /// <summary>Obtiene una cuenta por su identificador.</summary>
     Task<CuentaRespuesta> ObtenerCuentaAsync(Guid cuentaId, CancellationToken tokenCancelacion);
     /// <summary>Crea una cuenta y asigna un número único en el servidor.</summary>
@@ -16,6 +17,7 @@ public interface IServicioCuentas
     Task ActualizarEstadoCuentaAsync(Guid cuentaId, ActualizarEstadoCuentaSolicitud solicitud, CancellationToken tokenCancelacion);
     /// <summary>Obtiene los movimientos de una cuenta.</summary>
     Task<IReadOnlyCollection<MovimientoRespuesta>> ObtenerMovimientosAsync(Guid cuentaId, CancellationToken tokenCancelacion);
+    Task<ResultadoPaginado<MovimientoRespuesta>> ObtenerMovimientosPaginadosAsync(Guid cuentaId, ConsultaMovimientos consulta, CancellationToken tokenCancelacion);
     /// <summary>Registra un movimiento y actualiza el saldo de la cuenta.</summary>
     Task<MovimientoRespuesta> CrearMovimientoAsync(CrearMovimientoSolicitud solicitud, CancellationToken tokenCancelacion);
     /// <summary>Actualiza un movimiento y recalcula los saldos de la cuenta.</summary>

@@ -9,7 +9,7 @@ namespace Cuentas.Api.Controladores;
 public sealed class CuentasController(IServicioCuentas servicioCuentas) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyCollection<CuentaRespuesta>>> ObtenerTodos(CancellationToken tokenCancelacion) => Ok(await servicioCuentas.ObtenerCuentasAsync(tokenCancelacion));
+    public async Task<ActionResult<ResultadoPaginado<CuentaRespuesta>>> ObtenerTodos([FromQuery] ConsultaCuentas consulta, CancellationToken tokenCancelacion) => Ok(await servicioCuentas.ObtenerCuentasPaginadasAsync(consulta, tokenCancelacion));
 
     [HttpGet("{cuentaId:guid}")]
     public async Task<ActionResult<CuentaRespuesta>> ObtenerPorId(Guid cuentaId, CancellationToken tokenCancelacion) => Ok(await servicioCuentas.ObtenerCuentaAsync(cuentaId, tokenCancelacion));

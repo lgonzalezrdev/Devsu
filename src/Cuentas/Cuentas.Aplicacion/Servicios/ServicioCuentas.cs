@@ -20,6 +20,13 @@ public sealed class ServicioCuentas(
         return cuentas.Select(CuentaRespuesta.DesdeEntidad).ToArray();
     }
 
+    public async Task<ResultadoPaginado<CuentaRespuesta>> ObtenerCuentasPaginadasAsync(ConsultaCuentas consulta, CancellationToken tokenCancelacion)
+    {
+        ValidarPaginacion(consulta.Pagina, consulta.TamanoPagina);
+        (IReadOnlyCollection<Cuenta> cuentas, int totalRegistros) = await repositorioCuentas.ObtenerCuentasPaginadasAsync(consulta, tokenCancelacion);
+        return new ResultadoPaginado<CuentaRespuesta>(cuentas.Select(CuentaRespuesta.DesdeEntidad).ToArray(), consulta.Pagina, consulta.TamanoPagina, totalRegistros);
+    }
+
     public async Task<CuentaRespuesta> ObtenerCuentaAsync(Guid cuentaId, CancellationToken tokenCancelacion) =>
         CuentaRespuesta.DesdeEntidad(await ObtenerCuentaRequeridaAsync(cuentaId, tokenCancelacion));
 
@@ -66,6 +73,15 @@ public sealed class ServicioCuentas(
         await ObtenerCuentaRequeridaAsync(cuentaId, tokenCancelacion);
         IReadOnlyCollection<Movimiento> movimientos = await repositorioCuentas.ObtenerMovimientosAsync(cuentaId, tokenCancelacion);
         return movimientos.Select(MovimientoRespuesta.DesdeEntidad).ToArray();
+    }
+
+    public async Task<ResultadoPaginado<MovimientoRespuesta>> ObtenerMovimientosPaginadosAsync(Guid cuentaId, ConsultaMovimientos consulta, CancellationToken tokenCancelacion)
+    {
+        ValidarPaginacion(consulta.Pagina, consulta.TamanoPagina);
+        if (consulta.FechaInicio.HasValue && consulta.FechaFin.HasValue && consulta.FechaInicio > consulta.FechaFin) { throw new ExcepcionReglaDominioException("fechaInicio no puede ser mayor que fechaFin."); }
+        await ObtenerCuentaRequeridaAsync(cuentaId, tokenCancelacion);
+        (IReadOnlyCollection<Movimiento> movimientos, int totalRegistros) = await repositorioCuentas.ObtenerMovimientosPaginadosAsync(cuentaId, consulta, tokenCancelacion);
+        return new ResultadoPaginado<MovimientoRespuesta>(movimientos.Select(MovimientoRespuesta.DesdeEntidad).ToArray(), consulta.Pagina, consulta.TamanoPagina, totalRegistros);
     }
 
     public async Task<MovimientoRespuesta> CrearMovimientoAsync(CrearMovimientoSolicitud solicitud, CancellationToken tokenCancelacion)
@@ -121,6 +137,11 @@ public sealed class ServicioCuentas(
         }
 
         throw new ExcepcionReglaDominioException("No fue posible generar un número de cuenta único. Intente nuevamente.");
+    }
+
+    private static void ValidarPaginacion(int pagina, int tamanoPagina)
+    {
+        if (pagina < 1 || tamanoPagina is < 1 or > 100) { throw new ExcepcionReglaDominioException("pagina debe ser mayor a cero y tamanoPagina debe estar entre 1 y 100."); }
     }
 
     private async Task PublicarCuentaReporteAsync(Cuenta cuenta, CancellationToken tokenCancelacion, Movimiento? movimientoPendiente = null)

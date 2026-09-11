@@ -10,8 +10,8 @@ public sealed class ClientesController(IServicioClientes servicioClientes) : Con
 {
     [HttpGet]
     [ProducesResponseType<IReadOnlyCollection<ClienteRespuesta>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyCollection<ClienteRespuesta>>> ObtenerTodos(CancellationToken tokenCancelacion) =>
-        Ok(await servicioClientes.ObtenerTodosAsync(tokenCancelacion));
+    public async Task<ActionResult<ResultadoPaginado<ClienteRespuesta>>> ObtenerTodos([FromQuery] ConsultaClientes consulta, CancellationToken tokenCancelacion) =>
+        Ok(await servicioClientes.ObtenerPaginadoAsync(consulta, tokenCancelacion));
 
     [HttpGet("{clienteId:guid}")]
     [ProducesResponseType<ClienteRespuesta>(StatusCodes.Status200OK)]

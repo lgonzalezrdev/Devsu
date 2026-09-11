@@ -9,7 +9,7 @@ namespace Cuentas.Api.Controladores;
 public sealed class MovimientosController(IServicioCuentas servicioCuentas) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyCollection<MovimientoRespuesta>>> ObtenerPorCuenta([FromQuery] Guid cuentaId, CancellationToken tokenCancelacion) => Ok(await servicioCuentas.ObtenerMovimientosAsync(cuentaId, tokenCancelacion));
+    public async Task<ActionResult<ResultadoPaginado<MovimientoRespuesta>>> ObtenerPorCuenta([FromQuery] Guid cuentaId, [FromQuery] ConsultaMovimientos consulta, CancellationToken tokenCancelacion) => Ok(await servicioCuentas.ObtenerMovimientosPaginadosAsync(cuentaId, consulta, tokenCancelacion));
 
     [HttpPost]
     public async Task<ActionResult<MovimientoRespuesta>> Crear(CrearMovimientoSolicitud solicitud, CancellationToken tokenCancelacion)

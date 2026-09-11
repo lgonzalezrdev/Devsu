@@ -6,6 +6,7 @@ public interface IServicioClientes
 {
     /// <summary>Obtiene los clientes disponibles.</summary>
     Task<IReadOnlyCollection<ClienteRespuesta>> ObtenerTodosAsync(CancellationToken tokenCancelacion);
+    Task<ResultadoPaginado<ClienteRespuesta>> ObtenerPaginadoAsync(ConsultaClientes consulta, CancellationToken tokenCancelacion);
 
     /// <summary>Obtiene un cliente por su identificador.</summary>
     Task<ClienteRespuesta> ObtenerPorIdAsync(Guid clienteId, CancellationToken tokenCancelacion);

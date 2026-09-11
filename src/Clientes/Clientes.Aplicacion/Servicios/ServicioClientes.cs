@@ -2,6 +2,7 @@ using Clientes.Aplicacion.Contratos;
 using Clientes.Aplicacion.Excepciones;
 using Clientes.Aplicacion.Modelos;
 using Clientes.Dominio.Entidades;
+using Clientes.Dominio.Excepciones;
 using Contratos.Compartidos.Eventos;
 using System.Diagnostics;
 
@@ -16,6 +17,13 @@ public sealed class ServicioClientes(
     {
         IReadOnlyCollection<Cliente> clientes = await repositorioClientes.ObtenerTodosAsync(tokenCancelacion);
         return clientes.Select(ClienteRespuesta.DesdeEntidad).ToArray();
+    }
+
+    public async Task<ResultadoPaginado<ClienteRespuesta>> ObtenerPaginadoAsync(ConsultaClientes consulta, CancellationToken tokenCancelacion)
+    {
+        if (consulta.Pagina < 1 || consulta.TamanoPagina is < 1 or > 100) { throw new ExcepcionReglaDominioException("pagina debe ser mayor a cero y tamanoPagina debe estar entre 1 y 100."); }
+        (IReadOnlyCollection<Cliente> clientes, int totalRegistros) = await repositorioClientes.ObtenerPaginadoAsync(consulta, tokenCancelacion);
+        return new ResultadoPaginado<ClienteRespuesta>(clientes.Select(ClienteRespuesta.DesdeEntidad).ToArray(), consulta.Pagina, consulta.TamanoPagina, totalRegistros);
     }
 
     public async Task<ClienteRespuesta> ObtenerPorIdAsync(Guid clienteId, CancellationToken tokenCancelacion)
