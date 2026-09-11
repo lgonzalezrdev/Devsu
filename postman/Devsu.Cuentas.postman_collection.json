@@ -256,7 +256,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna dos movimientos', () => pm.expect(pm.response.json()).to.have.length(2));"
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna movimientos paginados', () => { const respuesta = pm.response.json(); pm.expect(respuesta.elementos).to.be.an('array'); pm.expect(respuesta).to.have.property('totalRegistros'); pm.expect(respuesta).to.have.property('totalPaginas'); });"
             ]
           }
         }
@@ -265,7 +265,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://{{servidor}}:{{puerto}}/api/movimientos?cuentaId={{cuentaId}}",
+          "raw": "http://{{servidor}}:{{puerto}}/api/movimientos?cuentaId={{cuentaId}}&pagina=1&tamanoPagina=20",
           "protocol": "http",
           "host": [
             "{{servidor}}"
@@ -279,6 +279,24 @@
             {
               "key": "cuentaId",
               "value": "{{cuentaId}}"
+            },
+            {
+              "key": "pagina",
+              "value": "1"
+            },
+            {
+              "key": "tamanoPagina",
+              "value": "20"
+            },
+            {
+              "key": "fechaInicio",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "fechaFin",
+              "value": "",
+              "disabled": true
             }
           ]
         }
@@ -287,11 +305,22 @@
     },
     {
       "name": "Consultar todas las cuentas",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna cuentas paginadas', () => { const respuesta = pm.response.json(); pm.expect(respuesta.elementos).to.be.an('array'); pm.expect(respuesta).to.have.property('totalRegistros'); });"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://{{servidor}}:{{puerto}}/api/cuentas",
+          "raw": "http://{{servidor}}:{{puerto}}/api/cuentas?pagina=1&tamanoPagina=20",
           "protocol": "http",
           "host": [
             "{{servidor}}"
@@ -300,6 +329,12 @@
           "path": [
             "api",
             "cuentas"
+          ],
+          "query": [
+            { "key": "pagina", "value": "1" },
+            { "key": "tamanoPagina", "value": "20" },
+            { "key": "clienteId", "value": "", "disabled": true },
+            { "key": "estado", "value": "true", "disabled": true }
           ]
         }
       },

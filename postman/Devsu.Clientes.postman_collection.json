@@ -98,7 +98,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna una colección', () => pm.expect(pm.response.json()).to.be.an('array'));"
+              "pm.test('Responde 200', () => pm.response.to.have.status(200));\npm.test('Retorna una página con metadatos', () => { const respuesta = pm.response.json(); pm.expect(respuesta.elementos).to.be.an('array'); pm.expect(respuesta).to.have.property('pagina'); pm.expect(respuesta).to.have.property('tamanoPagina'); pm.expect(respuesta).to.have.property('totalRegistros'); pm.expect(respuesta).to.have.property('totalPaginas'); });"
             ]
           }
         }
@@ -107,7 +107,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://{{servidor}}:{{puerto}}/api/clientes",
+          "raw": "http://{{servidor}}:{{puerto}}/api/clientes?pagina=1&tamanoPagina=20",
           "protocol": "http",
           "host": [
             "{{servidor}}"
@@ -116,6 +116,12 @@
           "path": [
             "api",
             "clientes"
+          ],
+          "query": [
+            { "key": "pagina", "value": "1" },
+            { "key": "tamanoPagina", "value": "20" },
+            { "key": "nombre", "value": "", "disabled": true },
+            { "key": "estado", "value": "true", "disabled": true }
           ]
         }
       },
