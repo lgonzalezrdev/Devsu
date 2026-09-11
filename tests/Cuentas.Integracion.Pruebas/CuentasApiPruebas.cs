@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cuentas.Aplicacion.Modelos;
+using Cuentas.Api.Serializacion;
 using Cuentas.Dominio.Enumeraciones;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -89,6 +90,35 @@ public sealed class CuentasApiPruebas : IClassFixture<FabricaCuentasPruebas>
         Assert.Equal("Saldo no disponible", problema.Detail);
     }
 
+    [Fact]
+    public async Task ActualizarMovimientoHistoricoRecalculaSaldoDeLaCuenta()
+    {
+        CuentaRespuesta cuenta = await CrearCuentaActivaAsync(100);
+        CrearMovimientoSolicitud solicitudCreacion = new()
+        {
+            CuentaId = cuenta.CuentaId,
+            TipoMovimiento = TipoMovimiento.Deposito,
+            Valor = 100
+        };
+        HttpResponseMessage respuestaCreacion = await clienteHttp.PostAsJsonAsync("/api/movimientos", solicitudCreacion, OpcionesSerializacion);
+        MovimientoRespuesta? movimiento = await respuestaCreacion.Content.ReadFromJsonAsync<MovimientoRespuesta>(OpcionesSerializacion);
+        ActualizarMovimientoSolicitud solicitudActualizacion = new()
+        {
+            TipoMovimiento = TipoMovimiento.Retiro,
+            Valor = 50
+        };
+
+        HttpResponseMessage respuestaActualizacion = await clienteHttp.PutAsJsonAsync($"/api/movimientos/{movimiento!.MovimientoId}", solicitudActualizacion, OpcionesSerializacion);
+        HttpResponseMessage respuestaCuenta = await clienteHttp.GetAsync($"/api/cuentas/{cuenta.CuentaId}");
+        CuentaRespuesta? cuentaActualizada = await respuestaCuenta.Content.ReadFromJsonAsync<CuentaRespuesta>(OpcionesSerializacion);
+
+        Assert.Equal(HttpStatusCode.Created, respuestaCreacion.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, respuestaActualizacion.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, respuestaCuenta.StatusCode);
+        Assert.NotNull(cuentaActualizada);
+        Assert.Equal(50, cuentaActualizada.SaldoDisponible);
+    }
+
     private async Task<CuentaRespuesta> CrearCuentaActivaAsync(decimal saldoInicial)
     {
         CrearCuentaSolicitud solicitud = new()
@@ -109,6 +139,7 @@ public sealed class CuentasApiPruebas : IClassFixture<FabricaCuentasPruebas>
     {
         JsonSerializerOptions opciones = new(JsonSerializerDefaults.Web);
         opciones.Converters.Add(new JsonStringEnumConverter());
+        opciones.Converters.Add(new ConvertidorFechaHora());
         return opciones;
     }
 }

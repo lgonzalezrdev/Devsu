@@ -35,4 +35,6 @@ public sealed class FabricaClientesPruebas : WebApplicationFactory<Program>
         base.Dispose(disposing);
         conexion.Dispose();
     }
+
+    public IServiceScope CrearAlcance() => Services.CreateScope();
 }

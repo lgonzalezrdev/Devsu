@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Clientes.Aplicacion.Modelos;
 using Clientes.Dominio.Enumeraciones;
+using Clientes.Dominio.Entidades;
+using Clientes.Infraestructura.Persistencia;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Clientes.Integracion.Pruebas;
@@ -13,10 +16,40 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
 {
     private static readonly JsonSerializerOptions OpcionesSerializacion = CrearOpcionesSerializacion();
     private readonly HttpClient clienteHttp;
+    private readonly FabricaClientesPruebas fabricaClientes;
 
     public ClientesApiPruebas(FabricaClientesPruebas fabricaClientes)
     {
+        this.fabricaClientes = fabricaClientes;
         clienteHttp = fabricaClientes.CreateClient();
+    }
+
+    [Fact]
+    public async Task ReporteFiltraMovimientosPorRangoYConservaCuentaSinMovimientos()
+    {
+        ClienteRespuesta cliente = await CrearClienteParaReporteAsync("7890123456", "Cliente Reporte");
+        Guid cuentaConMovimientosId = Guid.NewGuid();
+        Guid cuentaSinMovimientosId = Guid.NewGuid();
+        DateTime fechaDentroRango = new(2026, 9, 10, 10, 0, 0);
+
+        using IServiceScope alcance = fabricaClientes.CrearAlcance();
+        ContextoClientes contextoClientes = alcance.ServiceProvider.GetRequiredService<ContextoClientes>();
+        contextoClientes.CuentasReporte.AddRange(
+            new CuentaReporte(cuentaConMovimientosId, cliente.ClienteId, "111111", "Ahorros", 100, 150, true, fechaDentroRango),
+            new CuentaReporte(cuentaSinMovimientosId, cliente.ClienteId, "222222", "Corriente", 200, 200, true, fechaDentroRango));
+        contextoClientes.MovimientosReporte.AddRange(
+            new MovimientoReporte(Guid.NewGuid(), cuentaConMovimientosId, fechaDentroRango, "Deposito", 50, 150),
+            new MovimientoReporte(Guid.NewGuid(), cuentaConMovimientosId, fechaDentroRango.AddDays(-2), "Deposito", 30, 130));
+        await contextoClientes.SaveChangesAsync();
+
+        HttpResponseMessage respuesta = await clienteHttp.GetAsync($"/api/reportes?cliente={cliente.ClienteId}&fecha=2026-09-10%2000:00:00,2026-09-10%2023:59:59");
+        string contenido = await respuesta.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Contains("111111", contenido, StringComparison.Ordinal);
+        Assert.Contains("222222", contenido, StringComparison.Ordinal);
+        Assert.Contains("Deposito", contenido, StringComparison.Ordinal);
+        Assert.DoesNotContain("130", contenido, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -110,6 +143,15 @@ public sealed class ClientesApiPruebas : IClassFixture<FabricaClientesPruebas>
         Telefono = "0987654321",
         Contrasena = "1234"
     };
+
+    private async Task<ClienteRespuesta> CrearClienteParaReporteAsync(string identificacion, string nombre)
+    {
+        HttpResponseMessage respuesta = await clienteHttp.PostAsJsonAsync("/api/clientes", CrearSolicitud(identificacion, nombre), OpcionesSerializacion);
+        ClienteRespuesta? cliente = await respuesta.Content.ReadFromJsonAsync<ClienteRespuesta>(OpcionesSerializacion);
+        Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+        Assert.NotNull(cliente);
+        return cliente;
+    }
 
     private static JsonSerializerOptions CrearOpcionesSerializacion()
     {
